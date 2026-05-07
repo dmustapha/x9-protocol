@@ -43,7 +43,8 @@ export default function DashboardPage() {
     return () => clearInterval(interval);
   }, [walletAddress]);
 
-  if (!overview) {
+  // Guard: null (loading) OR malformed response (e.g. error shape from API)
+  if (!overview || typeof overview.totalPnl !== 'number') {
     return (
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '40vh' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, color: 'var(--color-x9-text-muted)', fontSize: 14 }}>
