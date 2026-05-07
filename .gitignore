@@ -66,3 +66,5 @@ npm-debug.log*
 .forge-state.json
 .watchdog-last-alert
 .*.json
+.vercel
+.env*.local
