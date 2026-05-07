@@ -797,6 +797,8 @@ body {
 .x9-hc-edge-5 { animation-delay: 0.60s; }
 .x9-hc-edge-6 { animation-delay: 0.70s; }
 .x9-hc-edge-7 { animation-delay: 0.85s; }
+.x9-hc-edge-8 { animation-delay: 1.00s; }
+.x9-hc-edge-9 { animation-delay: 1.10s; }
 .x9-hc-node-core { animation: x9-hc-node-pulse 2.5s ease-in-out infinite; }
 .x9-hc-node      { animation: x9-hc-node-pulse 3s ease-in-out infinite; }
 

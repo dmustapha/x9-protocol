@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" fill="none">
+  <rect width="32" height="32" rx="6" fill="#09090b"/>
+  <!-- Shield -->
+  <path d="M16 4L7 7.5v7.5c0 5.8 3.9 11.2 9 12.8 5.1-1.6 9-7 9-12.8V7.5L16 4z"
+    fill="#09090b" stroke="#00ff88" stroke-width="1.2" stroke-linejoin="round"/>
+  <!-- X -->
+  <line x1="11.5" y1="11.5" x2="20.5" y2="20.5" stroke="#00ff88" stroke-width="2" stroke-linecap="round"/>
+  <line x1="20.5" y1="11.5" x2="11.5" y2="20.5" stroke="#00ff88" stroke-width="2" stroke-linecap="round"/>
+</svg>

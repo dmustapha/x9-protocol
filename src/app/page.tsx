@@ -42,12 +42,18 @@ const RULE_ROWS = [
 ];
 
 const SPONSORS = [
-  { name: 'Swig Wallet', desc: 'Policy enforcement', color: '#00ff88' },
-  { name: 'Claude AI',   desc: 'Trade reasoning',    color: '#06b6d4' },
-  { name: 'Jupiter',     desc: 'Swap aggregator',    color: '#a855f7' },
-  { name: 'CoinGecko',   desc: 'Price feeds',        color: '#f97316' },
-  { name: 'Solana',      desc: 'Settlement layer',   color: '#06b6d4' },
-  { name: 'SNS',         desc: '.sol agent identity', color: '#00ff88' },
+  { name: 'Swig',        desc: 'Policy enforcement',    color: '#00ff88' },
+  { name: 'Claude AI',   desc: 'Trade reasoning',       color: '#06b6d4' },
+  { name: 'Jupiter',     desc: 'Swap aggregator',       color: '#a855f7' },
+  { name: 'Vanish',      desc: 'Private execution',     color: '#00ff88' },
+  { name: 'GoldRush',    desc: 'Portfolio analytics',   color: '#f97316' },
+  { name: 'Dune',        desc: 'On-chain analytics',    color: '#3b82f6' },
+  { name: 'SNS',         desc: '.sol agent identity',   color: '#00ff88' },
+  { name: 'Metaplex',    desc: 'Agent NFT registry',    color: '#a855f7' },
+  { name: 'Ika MPC',     desc: 'Threshold signing',     color: '#06b6d4' },
+  { name: 'Phantom',     desc: 'Wallet connection',     color: '#a855f7' },
+  { name: 'CoinGecko',   desc: 'Price feeds',           color: '#f97316' },
+  { name: 'Solana',      desc: 'Settlement layer',      color: '#06b6d4' },
 ];
 
 // ── Main Page ──────────────────────────────────────────
@@ -219,9 +225,9 @@ export default function HomePage() {
 
           <div className="x9-hc-flow-steps">
             {[
-              { num: '01', title: 'AI Reasoning',       desc: 'Claude Haiku analyzes RSI, volume, and market context with tool_use structured output.' },
-              { num: '02', title: 'Policy Enforcement', desc: 'Swig Smart Wallet enforces per-trade limits, daily caps, and token allowlists before execution.' },
-              { num: '03', title: 'Onchain Execution',  desc: 'Jupiter aggregates the best swap route. Transaction settles on Solana in under 400ms.' },
+              { num: '01', title: 'AI Reasoning',       desc: 'Claude analyzes RSI, volume, and portfolio data from GoldRush and Dune Analytics before deciding.' },
+              { num: '02', title: 'Policy Enforcement', desc: 'Swig Smart Wallet enforces per-trade limits. Vanish routes execution privately. Ika MPC co-signs.' },
+              { num: '03', title: 'Onchain Execution',  desc: 'Jupiter aggregates the best swap route. Agent identity anchored to .sol via SNS. Settles in under 400ms.' },
             ].map(step => (
               <div key={step.num} className="x9-hc-flow-step">
                 <div className="x9-hc-flow-num x9-mono">{step.num}</div>
@@ -234,7 +240,7 @@ export default function HomePage() {
           </div>
 
           <div className="x9-hc-chain-pills">
-            {['CoinGecko', 'Claude AI', 'Swig', 'Jupiter', 'Solana'].map((p, i, arr) => (
+            {['GoldRush', 'Claude AI', 'Vanish', 'Swig', 'Jupiter', 'Solana'].map((p, i, arr) => (
               <Fragment key={p}>
                 <span className="x9-hc-pill">{p}</span>
                 {i < arr.length - 1 && <span className="x9-hc-pill-arrow">→</span>}
@@ -433,17 +439,21 @@ function NetworkGraph() {
       <line x1="260" y1="200" x2="180" y2="420" stroke="#00ff88" strokeWidth="1"   strokeDasharray="1000" className="x9-hc-edge x9-hc-edge-5" />
       <line x1="260" y1="200" x2="380" y2="500" stroke="#06b6d4" strokeWidth="1"   strokeDasharray="1000" className="x9-hc-edge x9-hc-edge-6" />
       <line x1="260" y1="200" x2="260" y2="540" stroke="#00ff88" strokeWidth="1"   strokeDasharray="1000" className="x9-hc-edge x9-hc-edge-7" />
+      <line x1="260" y1="200" x2="90"  y2="185" stroke="#f97316" strokeWidth="1"   strokeDasharray="1000" className="x9-hc-edge x9-hc-edge-8" />
+      <line x1="260" y1="200" x2="450" y2="430" stroke="#00ff88" strokeWidth="1"   strokeDasharray="1000" className="x9-hc-edge x9-hc-edge-9" />
       <line x1="420" y1="310" x2="380" y2="500" stroke="#06b6d4" strokeWidth="0.5" strokeOpacity="0.3" />
 
       {/* Nodes */}
-      <GraphNode cx={260} cy={200} r={18} color="#00ff88" label="x9.core"  side="right" core />
-      <GraphNode cx={140} cy={100} r={10} color="#00ff88" label="Alpha-01" side="left" />
+      <GraphNode cx={260} cy={200} r={18} color="#00ff88" label="x9.core"   side="right" core />
+      <GraphNode cx={140} cy={100} r={10} color="#00ff88" label="Alpha-01"  side="left" />
       <GraphNode cx={400} cy={110} r={10} color="#06b6d4" label="Claude AI" side="right" />
-      <GraphNode cx={100} cy={300} r={8}  color="#06b6d4" label="Scalp-07" side="left" />
-      <GraphNode cx={420} cy={310} r={8}  color="#00ff88" label="Hedge-03" side="right" />
-      <GraphNode cx={180} cy={420} r={10} color="#00ff88" label="Policy"   side="left" />
-      <GraphNode cx={380} cy={500} r={8}  color="#06b6d4" label="Swig"     side="right" />
-      <GraphNode cx={260} cy={540} r={8}  color="#00ff88" label="Jupiter"  side="right" />
+      <GraphNode cx={100} cy={300} r={8}  color="#06b6d4" label="Scalp-07"  side="left" />
+      <GraphNode cx={420} cy={310} r={8}  color="#00ff88" label="Hedge-03"  side="right" />
+      <GraphNode cx={180} cy={420} r={10} color="#00ff88" label="Policy"    side="left" />
+      <GraphNode cx={380} cy={500} r={8}  color="#06b6d4" label="Swig"      side="right" />
+      <GraphNode cx={260} cy={540} r={8}  color="#00ff88" label="Jupiter"   side="right" />
+      <GraphNode cx={90}  cy={185} r={8}  color="#f97316" label="GoldRush"  side="left" />
+      <GraphNode cx={450} cy={430} r={8}  color="#00ff88" label="Vanish"    side="right" />
     </svg>
   );
 }

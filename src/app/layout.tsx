@@ -13,6 +13,10 @@ const inter = Inter({
 export const metadata: Metadata = {
   title: 'x9 protocol — AI judgment. Onchain enforcement.',
   description: 'Deploy autonomous AI trading agents on Solana with cryptographic policy enforcement via Swig.',
+  icons: {
+    icon: '/favicon.svg',
+    shortcut: '/favicon.svg',
+  },
   openGraph: {
     title: 'x9 protocol — AI judgment. Onchain enforcement.',
     description: 'Deploy autonomous AI trading agents on Solana with cryptographic policy enforcement via Swig.',
