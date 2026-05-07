@@ -1,0 +1,12 @@
+{
+  "name": "x9 protocol Trading Agent",
+  "description": "Autonomous AI trading agent with Swig policy guardrails on Solana",
+  "image": "",
+  "external_url": "https://x9protocol.vercel.app",
+  "attributes": [
+    { "trait_type": "Platform", "value": "x9 protocol" },
+    { "trait_type": "AI Model", "value": "Claude Haiku" },
+    { "trait_type": "Enforcement", "value": "Swig Smart Wallet" },
+    { "trait_type": "Privacy", "value": "Vanish Core API" }
+  ]
+}

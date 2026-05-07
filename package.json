@@ -1,0 +1,44 @@
+{
+  "name": "x9-protocol",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev --turbopack",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
+    "db:push": "prisma db push",
+    "db:generate": "prisma generate",
+    "db:seed": "npx ts-node scripts/seed-demo.ts",
+    "db:studio": "prisma studio",
+    "proof": "npx ts-node scripts/generate-proof.ts",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.39.0",
+    "@bonfida/spl-name-service": "^3.0.21",
+    "@metaplex-foundation/mpl-agent-registry": "^0.2.5",
+    "@metaplex-foundation/umi": "^1.0.0",
+    "@metaplex-foundation/umi-bundle-defaults": "^1.0.0",
+    "@phantom/react-sdk": "^2.0.2",
+    "@prisma/client": "^6.0.0",
+    "@solana/web3.js": "^1.95.0",
+    "@swig-wallet/api": "^1.3.0",
+    "@swig-wallet/developer": "^1.3.1",
+    "next": "^15.0.0",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "recharts": "^2.15.0",
+    "tweetnacl": "^1.0.3"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "@types/react": "^19.0.0",
+    "@vitest/ui": "^4.1.5",
+    "prisma": "^6.0.0",
+    "tailwindcss": "^4.0.0",
+    "ts-node": "^10.9.0",
+    "typescript": "^5.4.0",
+    "vitest": "^4.1.5"
+  }
+}

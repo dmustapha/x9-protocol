@@ -1,0 +1,99 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Agent {
+  id                  String   @id @default(cuid())
+  ownerWallet         String
+  name                String
+  status              String   @default("creating") // active | paused | blocked | stopped | creating
+  strategyText        String
+  policyId            String?
+  swigPolicyId        String?
+  swigWalletAddress   String?
+  metaplexNftAddress  String?
+  agentPublicKey      String?
+  agentSecretKey      String?  // Encrypted at rest — devnet only
+  vanishDepositAddr   String?
+  snsDomain           String?  // e.g. "alpha-hunter.sol" — SNS Identity
+  ikaKeyId            String?  // MPC threshold signing key (nullable — existing agents unaffected)
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  trades      Trade[]
+  pricePoints PricePoint[]
+  blockEvents BlockEvent[]
+  policyConfig PolicyConfig?
+  duneCache   DuneCache[]
+}
+
+model Trade {
+  id               String   @id @default(cuid())
+  agentId          String
+  action           String   // buy | sell | hold | blocked
+  token            String
+  amountLamports   String
+  reason           String
+  status           String   @default("pending") // executed | blocked | failed | pending
+  policyRule       String?
+  vanishTxId       String?
+  jupiterTxId      String?
+  privacyScore     String?  // JSON string of PrivacyScore
+  pnlDelta         Float?
+  onChainVerified  Boolean  @default(false)  // GoldRush on-chain confirmation
+  createdAt        DateTime @default(now())
+
+  agent Agent @relation(fields: [agentId], references: [id])
+}
+
+model PricePoint {
+  id        String   @id @default(cuid())
+  agentId   String
+  token     String
+  price     Float
+  timestamp DateTime @default(now())
+
+  agent Agent @relation(fields: [agentId], references: [id])
+}
+
+model PolicyConfig {
+  id                String   @id @default(cuid())
+  agentId           String   @unique
+  name              String
+  rules             String   // JSON string of ActionConfig[]
+  swigPolicyId      String?
+  deployTxSignature String?
+  createdAt         DateTime @default(now())
+
+  agent Agent @relation(fields: [agentId], references: [id])
+}
+
+model BlockEvent {
+  id               String   @id @default(cuid())
+  agentId          String
+  tradeId          String?
+  claudeReasoning  String
+  ruleTriggered    String
+  attemptedAmount  String
+  limitAmount      String
+  createdAt        DateTime @default(now())
+
+  agent Agent @relation(fields: [agentId], references: [id])
+}
+
+model DuneCache {
+  id       String   @id @default(cuid())
+  agentId  String
+  queryId  String
+  result   String   // JSON string
+  cachedAt DateTime @default(now())
+
+  agent Agent @relation(fields: [agentId], references: [id])
+
+  @@unique([agentId, queryId])
+}
