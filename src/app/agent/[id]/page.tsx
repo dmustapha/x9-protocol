@@ -23,7 +23,7 @@ export default function AgentDetailPage() {
     fetch(`/api/agent/${id}/pnl`).then(r => r.json()).then(d => setPnl(d.pnlData));
   }, [id]);
 
-  if (!agent) return <div className="text-center py-20 text-zinc-500">Loading agent...</div>;
+  if (!agent || 'error' in agent || !agent.name) return <div className="text-center py-20 text-zinc-500">Loading agent...</div>;
 
   const handleToggle = async () => {
     const action = agent.status === 'active' ? 'stop' : 'start';
@@ -65,7 +65,7 @@ export default function AgentDetailPage() {
           <TradeFeed trades={trades} />
         </div>
         <div className="space-y-6">
-          <PolicyPanel rules={agent.policyRules} />
+          <PolicyPanel rules={agent.policyRules ?? []} />
           {trades[0]?.privacyScore && <PrivacyScore score={trades[0].privacyScore} />}
           <DunePanel agentId={id} />
         </div>

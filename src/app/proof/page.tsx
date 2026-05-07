@@ -45,7 +45,17 @@ export default function ProofPage() {
   useEffect(() => {
     fetch('/api/dashboard/overview')
       .then((r) => r.json())
-      .then((d) => { setOverview(d); setLoading(false); })
+      .then((d) => {
+        if (typeof d.totalPnl !== 'number') { setLoading(false); return; }
+        setOverview({
+          agents:        d.totalAgents  ?? 0,
+          totalTrades:   d.totalTrades  ?? 0,
+          executedTrades: d.recentTrades?.filter((t: { status: string }) => t.status === 'executed').length ?? 0,
+          blockedEvents: d.blockEvents?.length ?? 0,
+          pnlSol:        d.totalPnl     ?? 0,
+        });
+        setLoading(false);
+      })
       .catch(() => setLoading(false));
   }, []);
 
