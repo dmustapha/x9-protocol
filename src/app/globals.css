@@ -1083,10 +1083,11 @@ body {
 }
 
 /* ── Reduced motion overrides ─────────────────────── */
+/* When reduce-motion is set, skip animations but keep elements visible */
 @media (prefers-reduced-motion: reduce) {
-  .x9-hc-ticker-track          { animation: none; }
-  .x9-hc-edge                  { animation: none; stroke-dashoffset: 0; opacity: 0.4; }
-  .x9-hc-ring-a, .x9-hc-ring-b { animation: none; opacity: 0; }
-  .x9-hc-node, .x9-hc-node-core { animation: none; }
+  .x9-hc-ticker-track          { animation: none; transform: translateX(-33.333%); }
+  .x9-hc-edge                  { animation: none; stroke-dashoffset: 0; opacity: 0.7; }
+  .x9-hc-ring-a, .x9-hc-ring-b { animation: none; opacity: 0.25; }
+  .x9-hc-node, .x9-hc-node-core { animation: none; opacity: 1; }
   .x9-hc-rule-row              { opacity: 1; transform: none; transition: none; }
 }
