@@ -608,18 +608,37 @@ body {
   from { transform: translateX(0); }
   to   { transform: translateX(-50%); }
 }
+/* Edge cycles continuously: draws from core → node, holds, fades out, repeats */
 @keyframes x9-hc-edge-draw {
   0%   { stroke-dashoffset: 1000; opacity: 0; }
-  20%  { opacity: 0.4; }
-  100% { stroke-dashoffset: 0; opacity: 0.5; }
+  10%  { opacity: 0.7; }
+  55%  { stroke-dashoffset: 0; opacity: 0.55; }
+  82%  { stroke-dashoffset: 0; opacity: 0.4; }
+  100% { stroke-dashoffset: 0; opacity: 0; }
 }
 @keyframes x9-hc-ring-expand {
   0%   { transform: scale(1);   opacity: 0.5; }
   100% { transform: scale(2.2); opacity: 0;   }
 }
+/* Visible opacity swing — was 0.9→1 (imperceptible). Now 0.4→1.0. */
 @keyframes x9-hc-node-pulse {
-  0%, 100% { opacity: 0.9; }
-  50%       { opacity: 1;   }
+  0%, 100% { opacity: 0.4; }
+  50%       { opacity: 1.0; }
+}
+/* Core node: larger, with subtle scale */
+@keyframes x9-hc-core-pulse {
+  0%, 100% { opacity: 0.6; transform: scale(1); }
+  50%       { opacity: 1.0; transform: scale(1.07); }
+}
+/* Halo bloom on each node */
+@keyframes x9-hc-node-halo-pulse {
+  0%, 100% { opacity: 0.05; transform: scale(1); }
+  50%       { opacity: 0.32; transform: scale(2.2); }
+}
+/* Generic fade-up for section entrance */
+@keyframes x9-hc-fade-up {
+  from { opacity: 0; transform: translateY(18px); }
+  to   { opacity: 1; transform: translateY(0); }
 }
 
 /* ── Floating nav ─────────────────────────────────── */
@@ -669,6 +688,17 @@ body {
   gap: 28px;
   z-index: 2;
 }
+/* Hero entrance: stagger children fade-up on load */
+.x9-hc-hero-left > * {
+  opacity: 0;
+  animation: x9-hc-fade-up 600ms ease-out forwards;
+}
+.x9-hc-hero-left > *:nth-child(1) { animation-delay:  50ms; }
+.x9-hc-hero-left > *:nth-child(2) { animation-delay: 130ms; }
+.x9-hc-hero-left > *:nth-child(3) { animation-delay: 210ms; }
+.x9-hc-hero-left > *:nth-child(4) { animation-delay: 290ms; }
+.x9-hc-hero-left > *:nth-child(5) { animation-delay: 370ms; }
+.x9-hc-hero-left > *:nth-child(6) { animation-delay: 450ms; }
 .x9-hc-hero-right {
   position: absolute;
   right: -40px;
@@ -788,19 +818,27 @@ body {
 }
 .x9-hc-edge {
   stroke-dashoffset: 1000;
-  animation: x9-hc-edge-draw 1.6s var(--ease-out-quart) forwards;
+  animation: x9-hc-edge-draw 7s ease-in-out infinite;
 }
-.x9-hc-edge-1 { animation-delay: 0.10s; }
-.x9-hc-edge-2 { animation-delay: 0.20s; }
-.x9-hc-edge-3 { animation-delay: 0.35s; }
-.x9-hc-edge-4 { animation-delay: 0.45s; }
-.x9-hc-edge-5 { animation-delay: 0.60s; }
-.x9-hc-edge-6 { animation-delay: 0.70s; }
-.x9-hc-edge-7 { animation-delay: 0.85s; }
-.x9-hc-edge-8 { animation-delay: 1.00s; }
-.x9-hc-edge-9 { animation-delay: 1.10s; }
-.x9-hc-node-core { animation: x9-hc-node-pulse 2.5s ease-in-out infinite; }
+/* Negative delays: each edge pre-running at a different cycle offset on load */
+.x9-hc-edge-1 { animation-delay:   0.0s; }
+.x9-hc-edge-2 { animation-delay:  -0.8s; }
+.x9-hc-edge-3 { animation-delay:  -1.6s; }
+.x9-hc-edge-4 { animation-delay:  -2.4s; }
+.x9-hc-edge-5 { animation-delay:  -3.2s; }
+.x9-hc-edge-6 { animation-delay:  -3.8s; }
+.x9-hc-edge-7 { animation-delay:  -4.6s; }
+.x9-hc-edge-8 { animation-delay:  -5.4s; }
+.x9-hc-edge-9 { animation-delay:  -6.0s; }
+/* Core gets more pronounced scale pulse; leaves use standard opacity swing */
+.x9-hc-node-core { animation: x9-hc-core-pulse 2.5s ease-in-out infinite; }
 .x9-hc-node      { animation: x9-hc-node-pulse 3s ease-in-out infinite; }
+/* Halo bloom — transform-box: fill-box makes scale relative to element center */
+.x9-hc-node-halo {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: x9-hc-node-halo-pulse 3s ease-in-out infinite;
+}
 
 /* ── Feed section (35 / 65 grid) ─────────────────── */
 .x9-hc-feed {
@@ -809,8 +847,18 @@ body {
   gap: 64px;
   align-items: center;
 }
-.x9-hc-feed-left  { display: flex; flex-direction: column; gap: 32px; }
-.x9-hc-feed-right { display: flex; align-items: center; justify-content: center; }
+.x9-hc-feed-left {
+  display: flex; flex-direction: column; gap: 32px;
+  opacity: 0; transform: translateY(28px);
+  transition: opacity 650ms ease, transform 650ms ease;
+}
+.x9-hc-feed-right {
+  display: flex; align-items: center; justify-content: center;
+  opacity: 0; transform: translateY(28px);
+  transition: opacity 650ms 180ms ease, transform 650ms 180ms ease;
+}
+.x9-hc-feed--visible .x9-hc-feed-left  { opacity: 1; transform: translateY(0); }
+.x9-hc-feed--visible .x9-hc-feed-right { opacity: 1; transform: translateY(0); }
 
 .x9-hc-section-eyebrow {
   font-size: 11px;
@@ -831,7 +879,15 @@ body {
 
 /* Flow steps */
 .x9-hc-flow-steps { display: flex; flex-direction: column; gap: 20px; }
-.x9-hc-flow-step  { display: flex; align-items: flex-start; gap: 16px; }
+.x9-hc-flow-step  {
+  display: flex; align-items: flex-start; gap: 16px;
+  opacity: 0; transform: translateX(-16px);
+  transition: opacity 500ms ease, transform 500ms ease;
+}
+.x9-hc-feed--visible .x9-hc-flow-step              { opacity: 1; transform: translateX(0); }
+.x9-hc-feed--visible .x9-hc-flow-step:nth-child(1) { transition-delay: 250ms; }
+.x9-hc-feed--visible .x9-hc-flow-step:nth-child(2) { transition-delay: 380ms; }
+.x9-hc-feed--visible .x9-hc-flow-step:nth-child(3) { transition-delay: 510ms; }
 .x9-hc-flow-num {
   width: 36px;
   height: 36px;
@@ -1024,8 +1080,13 @@ body {
   gap: 64px;
   align-items: center;
 }
-.x9-hc-deploy-left  { display: flex; flex-direction: column; gap: 28px; }
+.x9-hc-deploy-left {
+  display: flex; flex-direction: column; gap: 28px;
+  opacity: 0; transform: translateY(28px);
+  transition: opacity 650ms ease, transform 650ms ease;
+}
 .x9-hc-deploy-right { display: flex; align-items: center; justify-content: center; }
+.x9-hc-deploy--visible .x9-hc-deploy-left { opacity: 1; transform: translateY(0); }
 .x9-hc-deploy-title {
   font-size: clamp(2rem, 4vw, 3.2rem);
   font-weight: 900;
@@ -1049,9 +1110,23 @@ body {
   border: 1px solid var(--color-x9-border);
   border-radius: var(--radius-md);
   padding: 16px;
-  transition: border-color 200ms ease;
+  opacity: 0; transform: translateY(10px);
+  transition: border-color 200ms ease, opacity 400ms ease, transform 400ms ease;
 }
 .x9-hc-sponsor-card:hover { border-color: var(--hc-sponsor-color, var(--color-x9-accent-mid)); }
+.x9-hc-deploy--visible .x9-hc-sponsor-card               { opacity: 1; transform: translateY(0); }
+.x9-hc-deploy--visible .x9-hc-sponsor-card:nth-child(1)  { transition-delay: 120ms; }
+.x9-hc-deploy--visible .x9-hc-sponsor-card:nth-child(2)  { transition-delay: 170ms; }
+.x9-hc-deploy--visible .x9-hc-sponsor-card:nth-child(3)  { transition-delay: 220ms; }
+.x9-hc-deploy--visible .x9-hc-sponsor-card:nth-child(4)  { transition-delay: 270ms; }
+.x9-hc-deploy--visible .x9-hc-sponsor-card:nth-child(5)  { transition-delay: 320ms; }
+.x9-hc-deploy--visible .x9-hc-sponsor-card:nth-child(6)  { transition-delay: 370ms; }
+.x9-hc-deploy--visible .x9-hc-sponsor-card:nth-child(7)  { transition-delay: 420ms; }
+.x9-hc-deploy--visible .x9-hc-sponsor-card:nth-child(8)  { transition-delay: 470ms; }
+.x9-hc-deploy--visible .x9-hc-sponsor-card:nth-child(9)  { transition-delay: 520ms; }
+.x9-hc-deploy--visible .x9-hc-sponsor-card:nth-child(10) { transition-delay: 570ms; }
+.x9-hc-deploy--visible .x9-hc-sponsor-card:nth-child(11) { transition-delay: 620ms; }
+.x9-hc-deploy--visible .x9-hc-sponsor-card:nth-child(12) { transition-delay: 670ms; }
 .x9-hc-sponsor-name { font-size: 12px; font-weight: 600; color: var(--hc-sponsor-color, var(--color-x9-accent)); margin-bottom: 4px; }
 .x9-hc-sponsor-desc { font-size: 11px; color: var(--color-x9-text-dim); line-height: 1.4; }
 

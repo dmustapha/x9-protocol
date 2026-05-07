@@ -58,11 +58,13 @@ const SPONSORS = [
 
 // ── Main Page ──────────────────────────────────────────
 export default function HomePage() {
-  const [activeSection, setActiveSection] = useState<SectionId>('hero');
-  const [heroVisible,   setHeroVisible]   = useState(false);
-  const [policyVisible, setPolicyVisible] = useState(false);
-  const [activeRow,     setActiveRow]     = useState(0);
-  const [liveStats,     setLiveStats]     = useState({ agents: 44, trades: 20, blocks: 1 });
+  const [activeSection,  setActiveSection]  = useState<SectionId>('hero');
+  const [heroVisible,    setHeroVisible]    = useState(false);
+  const [policyVisible,  setPolicyVisible]  = useState(false);
+  const [feedVisible,    setFeedVisible]    = useState(false);
+  const [deployVisible,  setDeployVisible]  = useState(false);
+  const [activeRow,      setActiveRow]      = useState(0);
+  const [liveStats,      setLiveStats]      = useState({ agents: 44, trades: 20, blocks: 1 });
 
   const heroRef   = useRef<HTMLElement>(null);
   const feedRef   = useRef<HTMLElement>(null);
@@ -117,6 +119,26 @@ export default function HomePage() {
       { threshold: 0.2, rootMargin: '-40px' }
     );
     if (policyRef.current) obs.observe(policyRef.current);
+    return () => obs.disconnect();
+  }, []);
+
+  // Feed section entrance
+  useEffect(() => {
+    const obs = new IntersectionObserver(
+      ([e]) => { if (e.isIntersecting) setFeedVisible(true); },
+      { threshold: 0.15 }
+    );
+    if (feedRef.current) obs.observe(feedRef.current);
+    return () => obs.disconnect();
+  }, []);
+
+  // Deploy section entrance
+  useEffect(() => {
+    const obs = new IntersectionObserver(
+      ([e]) => { if (e.isIntersecting) setDeployVisible(true); },
+      { threshold: 0.15 }
+    );
+    if (deployRef.current) obs.observe(deployRef.current);
     return () => obs.disconnect();
   }, []);
 
@@ -218,7 +240,7 @@ export default function HomePage() {
       </section>
 
       {/* ── Section 2: Feed + Architecture ───────────── */}
-      <section id="feed" ref={feedRef} className="x9-hc-section x9-hc-feed">
+      <section id="feed" ref={feedRef} className={`x9-hc-section x9-hc-feed${feedVisible ? ' x9-hc-feed--visible' : ''}`}>
         <div className="x9-hc-feed-left">
           <div className="x9-hc-section-eyebrow">How it works</div>
           <h2 className="x9-hc-section-title">Three-layer<br />execution stack</h2>
@@ -358,7 +380,7 @@ export default function HomePage() {
       </section>
 
       {/* ── Section 4: Deploy ────────────────────────── */}
-      <section id="deploy" ref={deployRef} className="x9-hc-section x9-hc-deploy">
+      <section id="deploy" ref={deployRef} className={`x9-hc-section x9-hc-deploy${deployVisible ? ' x9-hc-deploy--visible' : ''}`}>
         <div className="x9-hc-deploy-left">
           <div className="x9-hc-section-eyebrow">Get Started</div>
           <h2 className="x9-hc-deploy-title">
@@ -468,6 +490,8 @@ function GraphNode({ cx, cy, r, color, label, side, core }: GraphNodeProps) {
   const tx = side === 'right' ? cx + r + 8 : cx - r - 8;
   return (
     <g>
+      {/* Halo glow bloom — pulses with x9-hc-node-halo-pulse */}
+      <circle cx={cx} cy={cy} r={r + 10} fill={color} fillOpacity={0.12} className="x9-hc-node-halo" />
       <circle cx={cx} cy={cy} r={r + 4} fill={color} fillOpacity={0.08} />
       <circle
         cx={cx} cy={cy} r={r}
