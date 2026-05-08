@@ -609,9 +609,10 @@ body {
   82%  { stroke-dashoffset: 0; opacity: 0.4; }
   100% { stroke-dashoffset: 0; opacity: 0; }
 }
-@keyframes x9-hc-ring-expand {
-  0%   { transform: scale(1);   opacity: 0.5; }
-  100% { transform: scale(2.2); opacity: 0;   }
+/* Ring breathe: swells to threshold then returns — no sonar ping */
+@keyframes x9-hc-ring-breathe {
+  0%, 100% { transform: scale(1);    opacity: 0.28; }
+  50%       { transform: scale(1.55); opacity: 0.62; }
 }
 /* Visible opacity swing — was 0.9→1 (imperceptible). Now 0.4→1.0. */
 @keyframes x9-hc-node-pulse {
@@ -803,11 +804,12 @@ body {
 
 .x9-hc-ring-a {
   transform-origin: 260px 200px;
-  animation: x9-hc-ring-expand 3s ease-out infinite;
+  animation: x9-hc-ring-breathe 3s ease-in-out infinite;
 }
 .x9-hc-ring-b {
   transform-origin: 260px 200px;
-  animation: x9-hc-ring-expand 3s ease-out 1.5s infinite;
+  /* 1.5s offset = opposite phase — when a swells, b contracts */
+  animation: x9-hc-ring-breathe 3s ease-in-out 1.5s infinite;
 }
 .x9-hc-edge {
   /* No base stroke-dashoffset — edges visible by default (dashoffset: 0).
