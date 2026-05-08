@@ -355,14 +355,7 @@ body {
 .x9-stagger > *:nth-child(5) { animation-delay: 240ms; }
 .x9-stagger > *:nth-child(6) { animation-delay: 300ms; }
 
-/* === Reduced motion === */
-@media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after {
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
-  }
-}
+/* Reduced motion: handled per-component; global kill removed to preserve SVG animation visibility */
 
 /* === Scrollbar === */
 ::-webkit-scrollbar { width: 4px; height: 4px; }
@@ -817,7 +810,9 @@ body {
   animation: x9-hc-ring-expand 3s ease-out 1.5s infinite;
 }
 .x9-hc-edge {
-  stroke-dashoffset: 1000;
+  /* No base stroke-dashoffset — edges visible by default (dashoffset: 0).
+     The keyframe starts at 1000 so the draw animates in. If animation is
+     suppressed (reduced-motion OS setting), edges fall back to fully drawn. */
   animation: x9-hc-edge-draw 7s ease-in-out infinite;
 }
 /* Negative delays: each edge pre-running at a different cycle offset on load */
