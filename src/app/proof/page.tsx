@@ -62,7 +62,7 @@ export default function ProofPage() {
   const integrations: IntegrationRow[] = [
     {
       sponsor: 'Ika dWallet (MPC)',
-      claim: 'Trades authorized via Ika threshold signing — approve_message on-chain call + gRPC Sign',
+      claim: 'Trades authorized via Ika threshold signing: approve_message on-chain call + gRPC Sign',
       evidence: 'ika.ts: buildApproveMessageIx() submits direct program call to 87W54kG…; signWithIka() calls pre-alpha-dev-1.ika.ika-network.net:443; ikaApprovalSig + ikaMpcSig stored on Trade',
       status: 'seeded',
     },

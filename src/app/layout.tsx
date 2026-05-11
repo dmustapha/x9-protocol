@@ -11,20 +11,20 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: 'x9 protocol — AI judgment. Onchain enforcement.',
+  title: 'x9 protocol: AI judgment. Onchain enforcement.',
   description: 'Deploy autonomous AI trading agents on Solana with cryptographic policy enforcement via Swig.',
   icons: {
     icon: '/favicon.svg',
     shortcut: '/favicon.svg',
   },
   openGraph: {
-    title: 'x9 protocol — AI judgment. Onchain enforcement.',
+    title: 'x9 protocol: AI judgment. Onchain enforcement.',
     description: 'Deploy autonomous AI trading agents on Solana with cryptographic policy enforcement via Swig.',
     type: 'website',
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'x9 protocol — AI judgment. Onchain enforcement.',
+    title: 'x9 protocol: AI judgment. Onchain enforcement.',
     description: 'Autonomous trading agents. Cryptographic policy. Solana.',
   },
 };

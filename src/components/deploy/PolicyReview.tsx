@@ -28,7 +28,7 @@ export default function PolicyReview({
 
       <p className="text-xs text-zinc-500">
         These rules will be enforced at the transaction layer via Swig. Your agent cannot exceed them.
-        You'll sign this policy with Phantom — that signature is the onchain commitment.
+        You'll sign this policy with Phantom. That signature is the onchain commitment.
       </p>
 
       <div className="flex gap-4">

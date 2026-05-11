@@ -192,7 +192,7 @@ export default function HomePage() {
 
           <p className="x9-hc-subtitle">
             Deploy AI trading agents on Solana with Swig enforcement. Claude reasons,
-            policy guards, Jupiter executes — all without counterparty risk.
+            policy guards, Jupiter executes. No counterparty risk.
           </p>
 
           <div className="x9-hc-cta-row">

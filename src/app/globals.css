@@ -695,7 +695,7 @@ body {
 .x9-hc-hero-left > *:nth-child(6) { animation-delay: 450ms; }
 .x9-hc-hero-right {
   position: absolute;
-  right: -40px;
+  right: 10px;
   top: 50%;
   transform: translateY(-50%);
   width: min(540px, 48%);
