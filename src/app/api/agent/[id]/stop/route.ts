@@ -8,8 +8,12 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
   try {
     const existing = await db.agent.findUnique({ where: { id } });
     if (!existing) return NextResponse.json({ error: 'Agent not found' }, { status: 404 });
-    if (wallet && existing.ownerWallet !== wallet) {
-      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+    const authHeader = req.headers.get('authorization');
+    const isCronCall = authHeader === `Bearer ${process.env.CRON_SECRET}`;
+    if (!isCronCall) {
+      if (!wallet || existing.ownerWallet !== wallet) {
+        return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+      }
     }
     const agent = await db.agent.update({
       where: { id },

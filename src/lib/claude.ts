@@ -1,6 +1,6 @@
 import Anthropic from '@anthropic-ai/sdk';
 import type { TradeDecision, ActionConfig, MarketContext } from '@/types';
-import { SOL_MINT, USDC_DEVNET_MINT, TOKEN_PROGRAM_ID, JUPITER_PROGRAM_ID } from '@/types';
+import { SOL_MINT, USDC_MAINNET_MINT, TOKEN_PROGRAM_ID, JUPITER_PROGRAM_ID } from '@/types';
 
 const API_KEY = process.env.ANTHROPIC_API_KEY?.trim() || '';
 const client = new Anthropic({ apiKey: API_KEY || 'no-key', timeout: 8000 });
@@ -43,7 +43,7 @@ export async function getTradeDecision(
       messages: [
         {
           role: 'user',
-          content: `You are a trading agent. Follow this strategy strictly.\n\nStrategy: ${strategy}\n\nCurrent market context:\n${contextStr}\n\nMake a trading decision. Use SOL mint "${SOL_MINT}" or USDC mint "${USDC_DEVNET_MINT}".`,
+          content: `You are a trading agent. Follow this strategy strictly.\n\nStrategy: ${strategy}\n\nCurrent market context:\n${contextStr}\n\nMake a trading decision. Use SOL mint "${SOL_MINT}" or USDC mint "${USDC_MAINNET_MINT}".`,
         },
       ],
     });
@@ -53,7 +53,17 @@ export async function getTradeDecision(
       return { action: 'hold', token: SOL_MINT, amount_lamports: 0, reason: 'No decision returned — holding' };
     }
 
-    return toolUse.input as TradeDecision;
+    const input = toolUse.input as Record<string, unknown>;
+    const validActions = ['buy', 'sell', 'hold'] as const;
+    if (!validActions.includes(input.action as typeof validActions[number])) {
+      return { action: 'hold', token: SOL_MINT, amount_lamports: 0, reason: 'Invalid action from Claude — holding' };
+    }
+    return {
+      action: input.action as TradeDecision['action'],
+      token: typeof input.token === 'string' && /^[1-9A-HJ-NP-Za-km-z]{32,44}$/.test(input.token) ? input.token : SOL_MINT,
+      amount_lamports: typeof input.amount_lamports === 'number' ? Math.max(0, Math.floor(input.amount_lamports)) : 0,
+      reason: typeof input.reason === 'string' ? input.reason.slice(0, 200) : 'No reason provided',
+    };
   } catch {
     return { action: 'hold', token: SOL_MINT, amount_lamports: 0, reason: 'Claude API unavailable — holding to preserve capital' };
   }
@@ -102,14 +112,14 @@ export async function strategyToPolicy(naturalLanguage: string): Promise<ActionC
 
   try {
     const response = await client.messages.create({
-      model: 'claude-sonnet-4-6-20250514',
+      model: 'claude-sonnet-4-6',
       max_tokens: 1024,
       tools: [POLICY_TOOL],
       tool_choice: { type: 'any' },
       messages: [
         {
           role: 'user',
-          content: `Convert this trading strategy into Swig ActionConfig rules.\n\nStrategy: "${naturalLanguage}"\n\nAvailable ActionConfig types:\n- SolLimit: max SOL per transaction (amount in lamports)\n- SolRecurringLimit: max SOL per time window (recurringAmount in lamports, window in seconds)\n- TokenLimit: max tokens per tx (mint address, amount in smallest unit)\n- TokenRecurringLimit: max tokens per window (mint, recurringAmount, window)\n- Program: whitelist a program (programId)\n\nAlways include:\n1. A per-trade SolLimit\n2. A daily SolRecurringLimit (window: "86400")\n3. Program whitelists for Token Program (${TOKEN_PROGRAM_ID}) and Jupiter (${JUPITER_PROGRAM_ID})\n4. Token limits if specific tokens mentioned\n\nUse SOL mint ${SOL_MINT}, USDC mint ${USDC_DEVNET_MINT}.\nConvert dollar amounts to lamports (1 SOL = 1000000000 lamports, 1 USDC = 1000000 units).`,
+          content: `Convert this trading strategy into Swig ActionConfig rules.\n\nStrategy: "${naturalLanguage}"\n\nAvailable ActionConfig types:\n- SolLimit: max SOL per transaction (amount in lamports)\n- SolRecurringLimit: max SOL per time window (recurringAmount in lamports, window in seconds)\n- TokenLimit: max tokens per tx (mint address, amount in smallest unit)\n- TokenRecurringLimit: max tokens per window (mint, recurringAmount, window)\n- Program: whitelist a program (programId)\n\nAlways include:\n1. A per-trade SolLimit\n2. A daily SolRecurringLimit (window: "86400")\n3. Program whitelists for Token Program (${TOKEN_PROGRAM_ID}) and Jupiter (${JUPITER_PROGRAM_ID})\n4. Token limits if specific tokens mentioned\n\nUse SOL mint ${SOL_MINT}, USDC mint ${USDC_MAINNET_MINT}.\nConvert dollar amounts to lamports (1 SOL = 1000000000 lamports, 1 USDC = 1000000 units).`,
         },
       ],
     });

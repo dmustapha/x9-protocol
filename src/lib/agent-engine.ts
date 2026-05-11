@@ -6,8 +6,9 @@ import { preCheckTrade } from './swig';
 import { vanish, buildPrivacyScore } from './vanish';
 import { getSwapQuote, getSwapTransaction } from './jupiter';
 import { getWalletPortfolio, verifyTradeOnChain } from './goldrush';
-import { signWithIka } from './ika';
-import { Keypair } from '@solana/web3.js';
+import { signWithIka, type IkaSignResult } from './ika';
+import { Keypair, Connection, VersionedTransaction, PublicKey } from '@solana/web3.js';
+import { decryptSecret } from './crypto';
 import type {
   TradeDecision,
   MarketContext,
@@ -15,7 +16,7 @@ import type {
   ActionConfig,
   TradeResponse,
 } from '@/types';
-import { SOL_MINT, USDC_DEVNET_MINT, LAMPORTS_PER_SOL } from '@/types';
+import { SOL_MINT, USDC_MAINNET_MINT, USDT_MAINNET_MINT, LAMPORTS_PER_SOL } from '@/types';
 
 export async function runAgentLoop(agentId: string): Promise<AgentLoopResult> {
   const agent = await db.agent.findUnique({
@@ -38,10 +39,10 @@ export async function runAgentLoop(agentId: string): Promise<AgentLoopResult> {
 
     const priceHistory = await db.pricePoint.findMany({
       where: { agentId, token: 'SOL' },
-      orderBy: { timestamp: 'asc' },
+      orderBy: { timestamp: 'desc' },
       take: 15,
     });
-    const solPrices = priceHistory.map((p) => p.price);
+    const solPrices = priceHistory.reverse().map((p) => p.price);
     const solRsi = calculateRSI(solPrices);
 
     // Step 3: Build market context
@@ -130,42 +131,90 @@ export async function runAgentLoop(agentId: string): Promise<AgentLoopResult> {
       return { agentId, decision, outcome: 'blocked', tradeId: trade.id };
     }
 
-    // Step 6: Execute trade via Jupiter + Vanish
+    // Step 6: Execute trade — Vanish privacy path first, direct Jupiter fallback
     let vanishTxId: string | undefined;
+    let jupiterTxId: string | undefined;
     let privacyScore = buildPrivacyScore('', '0 SOL');
+    let ikaResult: IkaSignResult | null = null;
+
+    const agentKeypair = Keypair.fromSecretKey(
+      Buffer.from(decryptSecret(agent.agentSecretKey!), 'base64')
+    );
+
+    // For BUY: detect which stablecoin the wallet holds (USDT or USDC) to use as input.
+    // For SELL: output is always USDC (deepest liquidity).
+    let inputMint: string;
+    let outputMint: string;
+    if (decision.action === 'buy') {
+      const rpcUrl = process.env.SOLANA_RPC_URL || 'https://api.mainnet-beta.solana.com';
+      const conn = new Connection(rpcUrl, 'confirmed');
+      const parsed = await conn.getParsedTokenAccountsByOwner(agentKeypair.publicKey, { mint: new PublicKey(USDT_MAINNET_MINT) });
+      const usdtBalance = (parsed.value[0]?.account.data as any)?.parsed?.info?.tokenAmount?.uiAmount ?? 0;
+      inputMint = usdtBalance > 0 ? USDT_MAINNET_MINT : USDC_MAINNET_MINT;
+      outputMint = SOL_MINT;
+    } else {
+      inputMint = SOL_MINT;
+      outputMint = USDC_MAINNET_MINT;
+      // Cap sell amount to wallet balance minus reserve for fees + USDC token account rent.
+      const SOL_RESERVE = 3_000_000; // 0.003 SOL: covers ATA rent + tx fees
+      const rpcUrl = process.env.SOLANA_RPC_URL || 'https://api.mainnet-beta.solana.com';
+      const conn = new Connection(rpcUrl, 'confirmed');
+      const solBalance = await conn.getBalance(agentKeypair.publicKey);
+      const maxSell = Math.max(0, solBalance - SOL_RESERVE);
+      if (decision.amount_lamports > maxSell) {
+        decision.amount_lamports = maxSell;
+        console.log(`[agent-engine] Capped sell to ${maxSell} lamports (reserve ${SOL_RESERVE})`);
+      }
+    }
+
+    if (decision.amount_lamports <= 0) {
+      return { agentId, decision, outcome: 'hold' };
+    }
 
     try {
-      const inputMint = decision.action === 'buy' ? USDC_DEVNET_MINT : SOL_MINT;
-      const outputMint = decision.action === 'buy' ? SOL_MINT : USDC_DEVNET_MINT;
+      // ── Vanish path (privacy trading with one-time wallet + flash loan) ──
+      let executedViaVanish = false;
+      try {
+        const oneTimeWallet = await vanish.getOneTimeWallet();
+        const quote = await getSwapQuote(inputMint, outputMint, decision.amount_lamports.toString());
+        const unsignedSwap = await getSwapTransaction(quote, oneTimeWallet);
 
-      const oneTimeWallet = await vanish.getOneTimeWallet();
-      const quote = await getSwapQuote(inputMint, outputMint, decision.amount_lamports.toString());
-      const unsignedSwap = await getSwapTransaction(quote, oneTimeWallet);
+        // Ika MPC authorization proof (non-blocking — Vanish still executes if Ika fails)
+        if (agent.ikaKeyId) {
+          ikaResult = await signWithIka(agent.ikaKeyId, unsignedSwap, agentKeypair);
+          if (!ikaResult) console.warn(`[agent-engine] Ika signing failed for ${agentId} — no MPC proof`);
+        }
 
-      // Use Ika MPC signing if agent is enrolled, otherwise fall back to Keypair
-      let ikaSignedTx: string | null = null;
-      if (agent.ikaKeyId) {
-        ikaSignedTx = await signWithIka(agent.ikaKeyId, unsignedSwap);
+        const tradeResult = await vanish.createTrade({
+          keypair: agentKeypair,
+          sourceMint: inputMint,
+          targetMint: outputMint,
+          amount: decision.amount_lamports.toString(),
+          unsignedSwapBase64: unsignedSwap,
+          oneTimeWallet,
+        });
+
+        vanishTxId = tradeResult.txId;
+        jupiterTxId = tradeResult.txId; // Vanish executes the Jupiter swap
+        privacyScore = buildPrivacyScore(oneTimeWallet);
+        await vanish.commit(tradeResult.txId);
+        executedViaVanish = true;
+      } catch (vanishErr) {
+        console.warn(`[agent-engine] Vanish failed (${String(vanishErr)}) — falling back to direct Jupiter`);
       }
 
-      const agentKeypair = Keypair.fromSecretKey(
-        Buffer.from(agent.agentSecretKey!, 'base64')
-      );
-
-      const tradeResult = await vanish.createTrade({
-        keypair: agentKeypair,
-        sourceMint: inputMint,
-        targetMint: outputMint,
-        amount: decision.amount_lamports.toString(),
-        unsignedSwapBase64: ikaSignedTx ?? unsignedSwap,
-        oneTimeWallet,
-      });
-
-      vanishTxId = tradeResult.txId;
-      privacyScore = buildPrivacyScore(oneTimeWallet);
-
-      // ALWAYS commit
-      await vanish.commit(tradeResult.txId);
+      // ── Direct Jupiter fallback (agent wallet signs + submits directly) ──
+      if (!executedViaVanish) {
+        const quote = await getSwapQuote(inputMint, outputMint, decision.amount_lamports.toString());
+        const unsignedSwap = await getSwapTransaction(quote, agentKeypair.publicKey.toBase58());
+        const tx = VersionedTransaction.deserialize(new Uint8Array(Buffer.from(unsignedSwap, 'base64')));
+        tx.sign([agentKeypair]);
+        const connection = new Connection(
+          process.env.SOLANA_RPC_URL || 'https://api.mainnet-beta.solana.com', 'confirmed'
+        );
+        jupiterTxId = await connection.sendRawTransaction(tx.serialize(), { skipPreflight: false });
+        console.log(`[agent-engine] Direct Jupiter tx: ${jupiterTxId}`);
+      }
     } catch (err) {
       const trade = await db.trade.create({
         data: {
@@ -181,6 +230,25 @@ export async function runAgentLoop(agentId: string): Promise<AgentLoopResult> {
     }
 
     // Step 7: Record successful trade
+    // For SELL, calculate realized PnL using entry price from the last BUY's PricePoint.
+    let pnlDelta = 0;
+    if (decision.action === 'sell') {
+      const lastBuy = await db.trade.findFirst({
+        where: { agentId, action: 'buy', status: 'executed' },
+        orderBy: { createdAt: 'desc' },
+      });
+      if (lastBuy) {
+        const entryPoint = await db.pricePoint.findFirst({
+          where: { agentId, token: 'SOL', timestamp: { lte: lastBuy.createdAt } },
+          orderBy: { timestamp: 'desc' },
+        });
+        if (entryPoint) {
+          const amountSol = Number(decision.amount_lamports) / 1e9;
+          pnlDelta = (prices.sol - entryPoint.price) * amountSol;
+        }
+      }
+    }
+
     const trade = await db.trade.create({
       data: {
         agentId,
@@ -190,8 +258,11 @@ export async function runAgentLoop(agentId: string): Promise<AgentLoopResult> {
         reason: decision.reason,
         status: 'executed',
         vanishTxId,
+        jupiterTxId,
         privacyScore: JSON.stringify(privacyScore),
-        pnlDelta: 0,
+        ikaApprovalSig: ikaResult?.approvalSig,
+        ikaMpcSig: ikaResult?.mpcSig,
+        pnlDelta,
       },
     });
 
@@ -227,6 +298,8 @@ function tradeToResponse(trade: {
   vanishTxId: string | null;
   privacyScore: string | null;
   pnlDelta: number | null;
+  ikaApprovalSig: string | null;
+  ikaMpcSig: string | null;
   createdAt: Date;
 }): TradeResponse {
   return {
@@ -241,6 +314,8 @@ function tradeToResponse(trade: {
     vanishTxId: trade.vanishTxId,
     privacyScore: trade.privacyScore ? JSON.parse(trade.privacyScore) : null,
     pnlDelta: trade.pnlDelta,
+    ikaApprovalSig: trade.ikaApprovalSig,
+    ikaMpcSig: trade.ikaMpcSig,
     createdAt: trade.createdAt.toISOString(),
   };
 }

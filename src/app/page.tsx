@@ -64,7 +64,8 @@ export default function HomePage() {
   const [feedVisible,    setFeedVisible]    = useState(false);
   const [deployVisible,  setDeployVisible]  = useState(false);
   const [activeRow,      setActiveRow]      = useState(0);
-  const [liveStats,      setLiveStats]      = useState({ agents: 44, trades: 20, blocks: 1 });
+  const [liveStats,      setLiveStats]      = useState({ agents: 0, trades: 0, blocks: 0 });
+  const [livePrices,     setLivePrices]     = useState<{ sol: number | null; usdc: number | null }>({ sol: null, usdc: null });
 
   const heroRef   = useRef<HTMLElement>(null);
   const feedRef   = useRef<HTMLElement>(null);
@@ -76,10 +77,18 @@ export default function HomePage() {
     fetch('/api/dashboard/overview')
       .then(r => r.json())
       .then(d => setLiveStats({
-        agents: d.totalAgents ?? 44,
-        trades: d.totalTrades ?? 20,
-        blocks: d.blockEvents?.length ?? 1,
+        agents: d.totalAgents ?? 0,
+        trades: d.totalTrades ?? 0,
+        blocks: d.blockEvents?.length ?? 0,
       }))
+      .catch(() => {});
+  }, []);
+
+  // Fetch live prices for ticker
+  useEffect(() => {
+    fetch('/api/prices')
+      .then(r => r.json())
+      .then(d => { if (d.sol) setLivePrices({ sol: d.sol, usdc: d.usdc }); })
       .catch(() => {});
   }, []);
 
@@ -196,17 +205,13 @@ export default function HomePage() {
             <div className="x9-hc-ticker-track">
               {[0, 1].map(i => (
                 <span key={i} className="x9-hc-ticker-inner">
-                  <span className="x9-hc-tick-item"><span className="x9-hc-tick-label">SOL</span> $182.40 <span className="x9-hc-tick-pos">+3.2%</span></span>
+                  <span className="x9-hc-tick-item"><span className="x9-hc-tick-label">SOL</span> {livePrices.sol ? `$${livePrices.sol.toFixed(2)}` : '—'} <span className="x9-hc-tick-pos">live</span></span>
                   <span className="x9-hc-tick-sep">·</span>
-                  <span className="x9-hc-tick-item"><span className="x9-hc-tick-label">BTC</span> $94,218 <span className="x9-hc-tick-pos">+1.8%</span></span>
+                  <span className="x9-hc-tick-item"><span className="x9-hc-tick-label">USDC</span> {livePrices.usdc ? `$${livePrices.usdc.toFixed(4)}` : '—'} <span className="x9-hc-tick-pos">live</span></span>
                   <span className="x9-hc-tick-sep">·</span>
-                  <span className="x9-hc-tick-item"><span className="x9-hc-tick-label">ETH</span> $3,412 <span className="x9-hc-tick-neg">-0.4%</span></span>
+                  <span className="x9-hc-tick-item"><span className="x9-hc-tick-label">JUP</span> indicative <span className="x9-hc-tick-pos">·</span></span>
                   <span className="x9-hc-tick-sep">·</span>
-                  <span className="x9-hc-tick-item"><span className="x9-hc-tick-label">JUP</span> $1.24 <span className="x9-hc-tick-pos">+5.6%</span></span>
-                  <span className="x9-hc-tick-sep">·</span>
-                  <span className="x9-hc-tick-item"><span className="x9-hc-tick-label">PYTH</span> $0.38 <span className="x9-hc-tick-neg">-1.2%</span></span>
-                  <span className="x9-hc-tick-sep">·</span>
-                  <span className="x9-hc-tick-item"><span className="x9-hc-tick-label">BONK</span> $0.000042 <span className="x9-hc-tick-pos">+8.4%</span></span>
+                  <span className="x9-hc-tick-item"><span className="x9-hc-tick-label">BONK</span> indicative <span className="x9-hc-tick-pos">·</span></span>
                   <span className="x9-hc-tick-sep">·</span>
                 </span>
               ))}
@@ -248,7 +253,7 @@ export default function HomePage() {
           <div className="x9-hc-flow-steps">
             {[
               { num: '01', title: 'AI Reasoning',       desc: 'Claude analyzes RSI, volume, and portfolio data from GoldRush and Dune Analytics before deciding.' },
-              { num: '02', title: 'Policy Enforcement', desc: 'Swig Smart Wallet enforces per-trade limits. Vanish routes execution privately. Ika MPC co-signs.' },
+              { num: '02', title: 'Policy Enforcement', desc: 'Swig Smart Wallet enforces per-trade limits. Vanish routes execution privately. Ika MPC authorizes via threshold signing.' },
               { num: '03', title: 'Onchain Execution',  desc: 'Jupiter aggregates the best swap route. Agent identity anchored to .sol via SNS. Settles in under 400ms.' },
             ].map(step => (
               <div key={step.num} className="x9-hc-flow-step">
@@ -330,21 +335,22 @@ export default function HomePage() {
               <span className="x9-hc-code-filename">agent-engine.ts</span>
             </div>
             <pre className="x9-hc-code-body x9-mono">
-              <span className="x9-hc-kw">const</span>{' '}result{' '}={' '}
-              <span className="x9-hc-kw">await</span>{'\n'}
-              {'  '}SwigClient<span className="x9-hc-punct">.</span>
-              <span className="x9-hc-fn">enforcePolicy</span>
-              <span className="x9-hc-punct">{'({'}</span>{'\n'}
-              {'    '}wallet<span className="x9-hc-punct">:</span>{' '}
-              agent<span className="x9-hc-punct">.</span>swigAddress
+              <span className="x9-hc-kw">const</span>{' '}check{' '}={'\n'}
+              {'  '}
+              <span className="x9-hc-fn">preCheckTrade</span>
+              <span className="x9-hc-punct">{'('}</span>{'\n'}
+              {'    '}decision<span className="x9-hc-punct">,</span>{'\n'}
+              {'    '}policyRules<span className="x9-hc-punct">,</span>{'\n'}
+              {'    '}solUsedToday
               <span className="x9-hc-punct">,</span>{'\n'}
-              {'    '}action<span className="x9-hc-punct">:</span>{' '}
-              <span className="x9-hc-str">&quot;trade&quot;</span>
-              <span className="x9-hc-punct">,</span>{'\n'}
-              {'    '}amount<span className="x9-hc-punct">:</span>{' '}
-              tradeSize<span className="x9-hc-punct">,</span>{'\n'}
-              {'  '}<span className="x9-hc-punct">{'}'}</span>
-              <span className="x9-hc-punct">)</span>
+              {'  '}<span className="x9-hc-punct">{')'}</span>{'\n'}
+              <span className="x9-hc-kw">if</span>{' '}
+              <span className="x9-hc-punct">{'('}</span>
+              <span className="x9-hc-punct">!</span>check
+              <span className="x9-hc-punct">.</span>allowed
+              <span className="x9-hc-punct">{')'}</span>{' '}
+              <span className="x9-hc-fn">block</span>
+              <span className="x9-hc-punct">()</span>
             </pre>
           </div>
         </div>

@@ -70,6 +70,8 @@ export interface TradeResponse {
   vanishTxId: string | null;
   privacyScore: PrivacyScore | null;
   pnlDelta: number | null;
+  ikaApprovalSig: string | null;
+  ikaMpcSig: string | null;
   createdAt: string;
 }
 
@@ -138,8 +140,12 @@ export type ActionConfig =
 
 // ── Constants ──
 
-export const SOL_MINT = 'So11111111111111111111111111111111';
+export const SOL_MINT = 'So11111111111111111111111111111111111111112';
 export const USDC_DEVNET_MINT = '4zMMC9srt5Ri5X14GAgXhaHii3GnPAEERYPJgZJDncDU';
+// Jupiter API is mainnet-only — no functional devnet equivalent exists (no real liquidity).
+// Swap quotes use mainnet USDC; on-chain balance queries (GoldRush) use USDC_DEVNET_MINT.
+export const USDC_MAINNET_MINT = 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v';
+export const USDT_MAINNET_MINT = 'Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB';
 export const TOKEN_PROGRAM_ID = 'TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA';
 export const JUPITER_PROGRAM_ID = 'JUP6LkbZbjS1jKKwapdHNy74zcZ3tLUZoi5QNyVTaV4';
 export const LAMPORTS_PER_SOL = 1_000_000_000;

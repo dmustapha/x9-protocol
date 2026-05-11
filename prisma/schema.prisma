@@ -3,7 +3,7 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
@@ -18,7 +18,7 @@ model Agent {
   swigWalletAddress   String?
   metaplexNftAddress  String?
   agentPublicKey      String?
-  agentSecretKey      String?  // Encrypted at rest — devnet only
+  agentSecretKey      String?  // AES-256-GCM encrypted at rest (iv:authTag:ciphertext)
   vanishDepositAddr   String?
   snsDomain           String?  // e.g. "alpha-hunter.sol" — SNS Identity
   ikaKeyId            String?  // MPC threshold signing key (nullable — existing agents unaffected)
@@ -46,6 +46,8 @@ model Trade {
   privacyScore     String?  // JSON string of PrivacyScore
   pnlDelta         Float?
   onChainVerified  Boolean  @default(false)  // GoldRush on-chain confirmation
+  ikaApprovalSig   String?  // Solana tx sig from Ika approve_message (authorization proof)
+  ikaMpcSig        String?  // Hex MPC signature from Ika network
   createdAt        DateTime @default(now())
 
   agent Agent @relation(fields: [agentId], references: [id])

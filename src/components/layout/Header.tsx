@@ -2,7 +2,12 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import WalletButton from '@/components/shared/WalletButton';
+import dynamic from 'next/dynamic';
+
+const WalletButton = dynamic(() => import('@/components/shared/WalletButton'), {
+  ssr: false,
+  loading: () => <div style={{ width: 120, height: 36, borderRadius: 8, background: 'var(--color-x9-surface)' }} />,
+});
 
 const NAV_LINKS = [
   { href: '/dashboard', label: 'Dashboard' },

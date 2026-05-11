@@ -53,7 +53,46 @@ async function setCached(agentId: string, queryId: string, rows: Record<string, 
 }
 
 // Fetch a Dune query result (with caching)
-async function fetchDuneQuery(agentId: string, queryKey: DuneQueryKey): Promise<DuneResult> {
+// Execute a parameterized Dune query for a specific wallet and poll for results.
+// Gives up after DUNE_EXEC_TIMEOUT_MS and returns null — caller falls back to derived.
+const DUNE_EXEC_TIMEOUT_MS = 8_000;
+const DUNE_POLL_INTERVAL_MS = 1_500;
+
+async function executeDuneQuery(
+  queryId: string,
+  walletAddress: string
+): Promise<Record<string, unknown>[] | null> {
+  // Start execution with wallet parameter
+  const exec = await duneFetch(`/query/${queryId}/execute`, {
+    method: 'POST',
+    body: JSON.stringify({
+      query_parameters: [{ key: 'wallet_address', value: walletAddress, type: 'text' }],
+      performance: 'medium',
+    }),
+  });
+  const executionId: string = exec.execution_id;
+  if (!executionId) return null;
+
+  // Poll until complete or timeout
+  const deadline = Date.now() + DUNE_EXEC_TIMEOUT_MS;
+  while (Date.now() < deadline) {
+    await new Promise((r) => setTimeout(r, DUNE_POLL_INTERVAL_MS));
+    const status = await duneFetch(`/execution/${executionId}/results`);
+    if (status.state === 'QUERY_STATE_COMPLETED') {
+      return status.result?.rows ?? [];
+    }
+    if (status.state === 'QUERY_STATE_FAILED' || status.state === 'QUERY_STATE_CANCELLED') {
+      return null;
+    }
+  }
+  return null; // timed out
+}
+
+async function fetchDuneQuery(
+  agentId: string,
+  queryKey: DuneQueryKey,
+  walletAddress?: string
+): Promise<DuneResult> {
   const queryId = QUERY_IDS[queryKey];
   const cacheKey = `${queryKey}:${agentId}`;
 
@@ -61,36 +100,26 @@ async function fetchDuneQuery(agentId: string, queryKey: DuneQueryKey): Promise<
   if (cached) return cached;
 
   // Fall back to DB-derived analytics when Dune key/query not configured
-  if (!DUNE_API_KEY || !queryId) {
+  if (!DUNE_API_KEY || !queryId || !walletAddress) {
     const rows = await derivedAnalytics(agentId, queryKey);
     await setCached(agentId, cacheKey, rows);
     return { queryId: queryKey, rows, source: 'derived' };
   }
 
   try {
-    // Execute the Dune query
-    const execRes = await duneFetch(`/query/${queryId}/execute`, { method: 'POST' });
-    const executionId = execRes.execution_id;
-
-    // Poll for results (max 30s)
-    let rows: Record<string, unknown>[] = [];
-    for (let i = 0; i < 6; i++) {
-      await new Promise((r) => setTimeout(r, 5000));
-      const statusRes = await duneFetch(`/execution/${executionId}/results`);
-      if (statusRes.state === 'QUERY_STATE_COMPLETED') {
-        rows = statusRes.result?.rows ?? [];
-        break;
-      }
+    const rows = await executeDuneQuery(queryId, walletAddress);
+    if (rows !== null) {
+      await setCached(agentId, cacheKey, rows);
+      return { queryId, rows, source: 'dune' };
     }
-
-    await setCached(agentId, cacheKey, rows);
-    return { queryId, rows, source: 'dune', executionId };
   } catch {
-    // Graceful fallback to derived analytics
-    const rows = await derivedAnalytics(agentId, queryKey);
-    await setCached(agentId, cacheKey, rows);
-    return { queryId: queryKey, rows, source: 'derived' };
+    // fall through to derived
   }
+
+  // Graceful fallback to derived analytics
+  const rows = await derivedAnalytics(agentId, queryKey);
+  await setCached(agentId, cacheKey, rows);
+  return { queryId: queryKey, rows, source: 'derived' };
 }
 
 // DB-derived analytics — works without Dune API key (hackathon demo fallback)
@@ -140,11 +169,15 @@ async function derivedAnalytics(
 
 // Fetch all 4 analytics queries for an agent
 export async function getAgentAnalytics(agentId: string) {
+  // Look up agent wallet so Dune queries can be parameterized per-wallet
+  const agent = await db.agent.findUnique({ where: { id: agentId }, select: { agentPublicKey: true } });
+  const walletAddress = agent?.agentPublicKey ?? undefined;
+
   const [tradeVolume, buySellRatio, pnlCurve, txHistory] = await Promise.all([
-    fetchDuneQuery(agentId, 'tradeVolume'),
-    fetchDuneQuery(agentId, 'buySellRatio'),
-    fetchDuneQuery(agentId, 'pnlCurve'),
-    fetchDuneQuery(agentId, 'txHistory'),
+    fetchDuneQuery(agentId, 'tradeVolume', walletAddress),
+    fetchDuneQuery(agentId, 'buySellRatio', walletAddress),
+    fetchDuneQuery(agentId, 'pnlCurve', walletAddress),
+    fetchDuneQuery(agentId, 'txHistory', walletAddress),
   ]);
   return { tradeVolume, buySellRatio, pnlCurve, txHistory };
 }

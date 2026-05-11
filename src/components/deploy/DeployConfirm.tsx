@@ -54,13 +54,15 @@ export default function DeployConfirm({
 
   if (status === 'done') {
     return (
-      <div className="text-center space-y-4">
-        <div className="text-4xl">✓</div>
-        <h2 className="text-xl font-semibold text-[var(--accent)]">Agent Deployed</h2>
-        <p className="text-zinc-400">Your agent is ready. Start it from the dashboard.</p>
+      <div className="x9-card" style={{ textAlign: 'center', display: 'flex', flexDirection: 'column', gap: 16 }}>
+        <div className="x9-mono" style={{ fontSize: 32, color: 'var(--color-x9-accent)' }}>✓</div>
+        <div style={{ fontWeight: 600, fontSize: 16, color: 'var(--color-x9-accent)' }}>Agent Deployed</div>
+        <p style={{ fontSize: 13, color: 'var(--color-x9-text-muted)', margin: 0 }}>
+          Your agent is ready. Start it from the dashboard.
+        </p>
         <button
           onClick={() => router.push(`/agent/${agentId}`)}
-          className="px-8 py-3 bg-[var(--accent)] text-black font-semibold rounded-lg"
+          className="x9-btn-primary"
         >
           View Agent
         </button>
@@ -69,15 +71,18 @@ export default function DeployConfirm({
   }
 
   return (
-    <div className="space-y-6 text-center">
-      <p className="text-zinc-400">
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 16, textAlign: 'center' }}>
+      <p style={{ fontSize: 13, color: 'var(--color-x9-text-muted)', margin: 0 }}>
         Deploying <strong>{agentName}</strong> with {rules.length} policy rules.
       </p>
-      {error && <p className="text-red-400 text-sm">{error}</p>}
+      {error && (
+        <p style={{ fontSize: 12, color: '#ef4444', margin: 0 }}>{error}</p>
+      )}
       <button
         onClick={deploy}
         disabled={status === 'deploying'}
-        className="w-full py-3 bg-[var(--accent)] text-black font-semibold rounded-lg hover:brightness-110 disabled:opacity-50"
+        className="x9-btn-primary"
+        style={{ width: '100%', opacity: status === 'deploying' ? 0.5 : 1 }}
       >
         {status === 'deploying' ? 'Deploying...' : 'Deploy Agent'}
       </button>

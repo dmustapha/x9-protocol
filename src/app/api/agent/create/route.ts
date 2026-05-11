@@ -6,9 +6,28 @@ import { registerAgent } from '@/lib/metaplex';
 import { vanish } from '@/lib/vanish';
 import { registerSNSDomain } from '@/lib/sns';
 import { enrollAgent, isIkaConfigured } from '@/lib/ika';
-import { Keypair } from '@solana/web3.js';
+import { Keypair, Connection } from '@solana/web3.js';
+import { encryptSecret } from '@/lib/crypto';
+
+// In-memory rate limiter: max 5 agent creations per IP per hour
+const rateMap = new Map<string, { count: number; windowStart: number }>();
+const RATE_LIMIT = 5;
+const RATE_WINDOW_MS = 60 * 60 * 1000; // 1 hour
+
+function checkRateLimit(ip: string): boolean {
+  const now = Date.now();
+  const entry = rateMap.get(ip);
+  if (!entry || now - entry.windowStart > RATE_WINDOW_MS) {
+    rateMap.set(ip, { count: 1, windowStart: now });
+    return true;
+  }
+  if (entry.count >= RATE_LIMIT) return false;
+  entry.count++;
+  return true;
+}
 
 export async function POST(req: Request) {
+  // Parse and validate body first — invalid requests don't consume rate limit slots
   let body: { ownerWallet?: string; name?: string; strategyText?: string };
   try {
     body = await req.json();
@@ -21,12 +40,22 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
   }
 
+  // CRON_SECRET bearer token bypasses rate limit (used by integration tests + internal tooling)
+  const authHeader = req.headers.get('authorization');
+  const isTrusted = authHeader === `Bearer ${process.env.CRON_SECRET}`;
+  if (!isTrusted) {
+    const ip = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ?? 'unknown';
+    if (!checkRateLimit(ip)) {
+      return NextResponse.json({ error: 'Rate limit exceeded — max 5 agents per hour' }, { status: 429 });
+    }
+  }
+
   const name = rawName || `Agent-${Date.now().toString(36).toUpperCase()}`;
 
   // Generate agent keypair
   const agentKeypair = Keypair.generate();
   const agentPublicKey = agentKeypair.publicKey.toBase58();
-  const agentSecretKey = Buffer.from(agentKeypair.secretKey).toString('base64');
+  const agentSecretKey = encryptSecret(Buffer.from(agentKeypair.secretKey).toString('base64'));
 
   // Create agent record
   const agent = await db.agent.create({
@@ -55,10 +84,15 @@ export async function POST(req: Request) {
         actions: policyRules,
       });
       swigPolicyId = policyResult.id;
-      const walletResult = await createWallet(swigPolicyId);
+      const walletResult = await createWallet(swigPolicyId, agentPublicKey);
       swigAddress = walletResult.swigAddress;
+      if (walletResult.transaction) {
+        walletResult.transaction.sign([agentKeypair]);
+        const conn = new Connection(process.env.SOLANA_RPC_URL!);
+        await conn.sendTransaction(walletResult.transaction);
+      }
     } catch {
-      // Swig devnet API unavailable — using mock IDs, policy enforcement runs locally
+      // Swig API unavailable — using mock IDs, policy enforcement runs locally
     }
 
     // Register on Metaplex 014
@@ -73,7 +107,7 @@ export async function POST(req: Request) {
     // Get Vanish deposit address
     let vanishDepositAddr = '';
     try {
-      vanishDepositAddr = await vanish.getDepositAddress();
+      vanishDepositAddr = await vanish.getDepositAddress(undefined, agentPublicKey);
     } catch {
       vanishDepositAddr = 'vanish-pending';
     }

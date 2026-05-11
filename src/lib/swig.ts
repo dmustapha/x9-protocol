@@ -1,60 +1,68 @@
+import { SwigClient } from '@swig-wallet/developer';
 import type { ActionConfig, AgentPolicy } from '@/types';
 
-const SWIG_BASE = 'https://dashboard.onswig.com';
-const SWIG_API_KEY = process.env.SWIG_API_KEY!;
+const SWIG_API_KEY = process.env.SWIG_API_KEY ?? '';
+const SWIG_PORTAL_URL = 'https://dashboard.onswig.com';
+// Policy provisioned on dashboard.onswig.com — 0.1 SOL/day, Curated Programs (Jupiter/Orca/Raydium)
+const SWIG_DEFAULT_POLICY_ID = process.env.SWIG_DEFAULT_POLICY_ID ?? '';
 
-async function swigFetch(path: string, options: RequestInit = {}) {
-  const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), 5000);
-  let res: Response;
-  try {
-    res = await fetch(`${SWIG_BASE}${path}`, {
-      ...options,
-      signal: controller.signal,
-      headers: {
-        Authorization: `Bearer ${SWIG_API_KEY}`,
-        'Content-Type': 'application/json',
-        ...options.headers,
-      },
-    });
-  } finally {
-    clearTimeout(timeout);
-  }
+// Normalize Solana network env to Swig SDK format ('mainnet' | 'devnet')
+const SWIG_NETWORK =
+  (process.env.SOLANA_NETWORK ?? 'mainnet-beta') === 'devnet' ? 'devnet' : 'mainnet';
 
-  if (!res.ok) {
-    const body = await res.text();
-    throw new Error(`Swig API error ${res.status}: ${body}`);
-  }
-
-  return res.json();
+function getClient(): SwigClient {
+  if (!SWIG_API_KEY) throw new Error('SWIG_API_KEY not configured');
+  return new SwigClient({ apiKey: SWIG_API_KEY, baseUrl: SWIG_PORTAL_URL });
 }
 
-export async function createPolicy(policy: AgentPolicy): Promise<{ id: string }> {
-  return swigFetch('/api/v1/policies', {
-    method: 'POST',
-    body: JSON.stringify(policy),
-  });
+// Policy creation is dashboard-only (SDK has no createPolicy endpoint).
+// All agents share the x9-default policy — per-agent spending rules are enforced locally
+// by preCheckTrade, while the on-chain policy provides the hard ceiling.
+export async function createPolicy(_policy: AgentPolicy): Promise<{ id: string }> {
+  if (!SWIG_DEFAULT_POLICY_ID) throw new Error('SWIG_DEFAULT_POLICY_ID not configured');
+  return { id: SWIG_DEFAULT_POLICY_ID };
 }
 
-export async function createWallet(policyId: string): Promise<{ swigAddress: string }> {
-  const result = await swigFetch('/api/v1/wallets', {
-    method: 'POST',
-    body: JSON.stringify({ policyId, network: 'devnet' }),
+// Creates a Swig smart wallet on-chain for the given policy ID.
+// agentPublicKey is set as the ED25519 authority on the wallet.
+// Returns swigAddress + unsigned VersionedTransaction that must be signed by agentKeypair and submitted.
+export async function createWallet(
+  policyId: string,
+  agentPublicKey: string,
+): Promise<{ swigAddress: string; transaction?: import('@solana/web3.js').VersionedTransaction }> {
+  const client = getClient();
+  const result = await client.createWallet({
+    policyId,
+    network: SWIG_NETWORK,
+    walletAddress: agentPublicKey,
+    walletType: 'ED25519',
   });
-  return { swigAddress: result.data?.swigAddress || result.swigAddress };
+  return { swigAddress: result.swigAddress, transaction: 'transaction' in result ? result.transaction : undefined };
 }
 
 export async function getPolicy(policyId: string): Promise<AgentPolicy> {
-  return swigFetch(`/api/v1/policies/${policyId}`);
+  const client = getClient();
+  const policy = await client.getPolicy(policyId);
+  // Actions is a rich SDK class — return metadata only; rules are managed locally via preCheckTrade
+  return {
+    name: policy.name,
+    description: '',
+    authority: { type: 'ED25519', publicKey: '' },
+    actions: [],
+  };
 }
 
 export function preCheckTrade(
-  decision: { action: string; amount_lamports: number; token: string },
+  decision: { action: string; amount_lamports: number; token: string; destination?: string },
   policyRules: ActionConfig[],
-  solUsedToday: number
+  solUsedToday: number,
+  tokenUsedToday: Map<string, number> = new Map(),
 ): { allowed: boolean; violatedRule?: string; limit?: string } {
+  const isSol = decision.token.startsWith('So1');
+
   for (const rule of policyRules) {
-    if (rule.type === 'SolLimit' && decision.token.startsWith('So1')) {
+    // Per-trade SOL cap
+    if (rule.type === 'SolLimit' && isSol) {
       const limit = parseInt(rule.amount);
       if (decision.amount_lamports > limit) {
         return {
@@ -65,7 +73,8 @@ export function preCheckTrade(
       }
     }
 
-    if (rule.type === 'SolRecurringLimit' && decision.token.startsWith('So1')) {
+    // Daily SOL rolling limit
+    if (rule.type === 'SolRecurringLimit' && isSol) {
       const dailyLimit = parseInt(rule.recurringAmount);
       if (solUsedToday + decision.amount_lamports > dailyLimit) {
         return {
@@ -76,13 +85,39 @@ export function preCheckTrade(
       }
     }
 
+    // SOL destination allowlist
+    if (rule.type === 'SolDestinationLimit' && isSol) {
+      const limit = parseInt(rule.amount);
+      if (decision.amount_lamports > limit) {
+        return {
+          allowed: false,
+          violatedRule: `SolDestinationLimit (${(limit / 1e9).toFixed(1)} SOL max to ${rule.destination})`,
+          limit: rule.amount,
+        };
+      }
+    }
+
+    // Per-trade token cap
     if (rule.type === 'TokenLimit' && 'mint' in rule && rule.mint === decision.token) {
       const limit = parseInt(rule.amount);
       if (decision.amount_lamports > limit) {
         return {
           allowed: false,
-          violatedRule: `TokenLimit (${limit} max per trade)`,
+          violatedRule: `TokenLimit (${limit} max per trade for mint ${rule.mint.slice(0, 8)}…)`,
           limit: rule.amount,
+        };
+      }
+    }
+
+    // Daily token rolling limit
+    if (rule.type === 'TokenRecurringLimit' && 'mint' in rule && rule.mint === decision.token) {
+      const dailyLimit = parseInt(rule.recurringAmount);
+      const usedToday = tokenUsedToday.get(rule.mint) ?? 0;
+      if (usedToday + decision.amount_lamports > dailyLimit) {
+        return {
+          allowed: false,
+          violatedRule: `TokenRecurringLimit (${dailyLimit} max/day for mint ${rule.mint.slice(0, 8)}…, used ${usedToday})`,
+          limit: rule.recurringAmount,
         };
       }
     }

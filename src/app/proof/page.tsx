@@ -61,16 +61,22 @@ export default function ProofPage() {
 
   const integrations: IntegrationRow[] = [
     {
+      sponsor: 'Ika dWallet (MPC)',
+      claim: 'Trades authorized via Ika threshold signing — approve_message on-chain call + gRPC Sign',
+      evidence: 'ika.ts: buildApproveMessageIx() submits direct program call to 87W54kG…; signWithIka() calls pre-alpha-dev-1.ika.ika-network.net:443; ikaApprovalSig + ikaMpcSig stored on Trade',
+      status: 'seeded',
+    },
+    {
       sponsor: 'Swig Smart Wallet',
       claim: 'Policy engine enforces per-trade and daily SOL limits',
-      evidence: 'SwigClient.createPolicy() + enforcePolicy() in agent-engine.ts; BlockEvent table records each enforcement',
+      evidence: 'swig.ts: createSwigWallet() on agent deploy, preCheckTrade() enforces per-trade and daily limits; BlockEvent table records each violation; SWIG_DEFAULT_POLICY_ID applied',
       status: 'seeded',
     },
     {
       sponsor: 'Vanish Core API',
       claim: 'Trades routed through one-time privacy wallets',
-      evidence: 'VanishClient.createDepositAddress() + executePrivateTrade() in vanish.ts; vanishTxId stored on each Trade',
-      status: 'seeded',
+      evidence: 'vanish.ts: getOneTimeWallet() + createTrade() + commit(); tx 3pSrrMQkrP7Gm… confirmed on mainnet; vanishTxId stored on each Trade; oneTimeWallet/noOnchainLink/jitoProtected all true',
+      status: 'live',
     },
     {
       sponsor: 'Metaplex Core',
@@ -93,8 +99,8 @@ export default function ProofPage() {
     {
       sponsor: 'Jupiter (via Vanish)',
       claim: 'Swaps executed through Jupiter aggregator',
-      evidence: 'JupiterClient.getSwapQuote() + executeSwap() in jupiter.ts; integrated in agent-engine.ts trade execution',
-      status: 'seeded',
+      evidence: 'jupiter.ts: getSwapQuote() + getSwapTransaction(); Vanish uses OTW as userPublicKey for privacy; direct fallback signs + submits raw tx via @solana/web3.js',
+      status: 'live',
     },
     {
       sponsor: 'CoinGecko',
@@ -105,7 +111,7 @@ export default function ProofPage() {
     {
       sponsor: 'GoldRush (Covalent)',
       claim: 'Live on-chain portfolio balances + trade verification',
-      evidence: 'goldrush.ts: getWalletPortfolio() replaces hardcoded balances in agent-engine; verifyTradeOnChain() sets Trade.onChainVerified; PortfolioCard on dashboard shows live SOL/USDC',
+      evidence: 'goldrush.ts: getWalletPortfolio() fetches live Solana balances via Covalent API; verifyTradeOnChain() calls getSignatureStatuses RPC; Trade.onChainVerified set async post-execution',
       status: 'seeded',
     },
     {
@@ -119,12 +125,6 @@ export default function ProofPage() {
       claim: '4-query on-chain analytics engine with 24h Prisma cache',
       evidence: 'dune.ts: trade volume, buy/sell ratio, PnL curve, tx history; /api/dune/[agentId] route serves results; DunePanel embedded on /agent/[id]; DB-derived fallback when no API key',
       status: 'seeded',
-    },
-    {
-      sponsor: 'Ika (Encrypt & Ika)',
-      claim: 'MPC threshold signing for agent transactions',
-      evidence: 'ika.ts: enrollAgent() called on new agent create; signWithIka() used in agent-engine if agent.ikaKeyId set; existing agents fall back to Keypair — zero-breaking-change design',
-      status: 'pending',
     },
   ];
 
@@ -144,7 +144,7 @@ export default function ProofPage() {
           Integration Proof
         </h1>
         <p style={{ fontSize: 14, color: 'var(--color-x9-text-muted)', marginTop: 6 }}>
-          Verifiable evidence of real integrations with all 11 sponsor technologies.
+          Verifiable evidence of real integrations with 11 core technologies.
         </p>
       </div>
 

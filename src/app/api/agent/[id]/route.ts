@@ -1,6 +1,15 @@
 import { NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 
+export async function PATCH(req: Request, { params }: { params: Promise<{ id: string }> }) {
+  const auth = req.headers.get('authorization');
+  if (auth !== `Bearer ${process.env.CRON_SECRET}`) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  const { id } = await params;
+  const body = await req.json();
+  const agent = await db.agent.update({ where: { id }, data: body, select: { id: true, name: true, strategyText: true, status: true } });
+  return NextResponse.json(agent);
+}
+
 export async function GET(req: Request, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const { searchParams } = new URL(req.url);

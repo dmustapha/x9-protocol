@@ -14,11 +14,18 @@ export async function POST(req: Request) {
       where: { status: 'active' },
     });
 
-    const results = [];
-    for (const agent of activeAgents) {
-      const result = await runAgentLoop(agent.id);
-      results.push({ ...result, snsDomain: agent.snsDomain });
-    }
+    // Run all agent loops concurrently — one failure must not block others.
+    const settled = await Promise.allSettled(
+      activeAgents.map((agent) =>
+        runAgentLoop(agent.id).then((result) => ({ ...result, snsDomain: agent.snsDomain }))
+      )
+    );
+
+    const results = settled.map((r, i) =>
+      r.status === 'fulfilled'
+        ? r.value
+        : { agentId: activeAgents[i].id, outcome: 'error', error: String(r.reason) }
+    );
 
     return NextResponse.json({ processed: results.length, results });
   } catch (err) {

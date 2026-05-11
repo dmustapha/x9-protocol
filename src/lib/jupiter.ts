@@ -1,4 +1,11 @@
-const JUPITER_BASE = 'https://quote-api.jup.ag/v6';
+const JUPITER_BASE = 'https://api.jup.ag/swap/v1';
+const JUPITER_TIMEOUT_MS = 15_000;
+
+function jupFetch(url: string, init?: RequestInit): Promise<Response> {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), JUPITER_TIMEOUT_MS);
+  return fetch(url, { ...init, signal: controller.signal }).finally(() => clearTimeout(timer));
+}
 
 export async function getSwapQuote(
   inputMint: string,
@@ -6,7 +13,7 @@ export async function getSwapQuote(
   amount: string,
   slippageBps: number = 50
 ): Promise<unknown> {
-  const res = await fetch(
+  const res = await jupFetch(
     `${JUPITER_BASE}/quote?inputMint=${inputMint}&outputMint=${outputMint}&amount=${amount}&slippageBps=${slippageBps}`
   );
   if (!res.ok) throw new Error(`Jupiter quote failed: ${res.status}`);
@@ -17,7 +24,7 @@ export async function getSwapTransaction(
   quoteResponse: unknown,
   userPublicKey: string
 ): Promise<string> {
-  const res = await fetch(`${JUPITER_BASE}/swap`, {
+  const res = await jupFetch(`${JUPITER_BASE}/swap`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({

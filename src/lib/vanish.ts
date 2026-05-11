@@ -15,8 +15,13 @@ function vanishHeaders() {
 
 // ── Real Vanish Implementation ──
 
-async function realGetDepositAddress(tokenAddress: string = 'native'): Promise<string> {
-  const res = await fetch(`${VANISH_BASE}/deposit_address?token_address=${tokenAddress}`, {
+// Vanish uses the system program address for native SOL, not the wrapped SOL mint
+const SOL_SYSTEM_ADDRESS = '11111111111111111111111111111111';
+
+async function realGetDepositAddress(tokenAddress: string = SOL_SYSTEM_ADDRESS, userAddress?: string): Promise<string> {
+  const params = new URLSearchParams({ token_address: tokenAddress });
+  if (userAddress) params.set('user_address', userAddress);
+  const res = await fetch(`${VANISH_BASE}/deposit_address?${params}`, {
     headers: vanishHeaders(),
   });
   const data = await res.json();
@@ -40,10 +45,14 @@ async function realCreateTrade(params: {
   oneTimeWallet: string;
 }): Promise<{ txId: string }> {
   const timestamp = Date.now().toString(); // MUST be milliseconds
-  const loanSol = '12000000'; // 0.012 SOL
+  const loanSol = '5000000'; // 0.005 SOL — covers ATA rent; 12M recommended but requires larger shielded balance
   const jitoTip = '1000000'; // 0.001 SOL
 
-  const message = `By signing, I hereby agree to Vanish's Terms of Service and agree to be bound by them (docs.vanish.trade/legal/TOS)\n\nDetails: trade:${params.sourceMint}:${params.targetMint}:${params.amount}:${loanSol}:${timestamp}:${jitoTip}`;
+  // Vanish uses system program address for native SOL, not wrapped SOL mint
+  const vanishSource = params.sourceMint === 'So11111111111111111111111111111111111111112' ? SOL_SYSTEM_ADDRESS : params.sourceMint;
+  const vanishTarget = params.targetMint === 'So11111111111111111111111111111111111111112' ? SOL_SYSTEM_ADDRESS : params.targetMint;
+
+  const message = `By signing, I hereby agree to Vanish's Terms of Service and agree to be bound by them (docs.vanish.trade/legal/TOS)\n\nDetails: trade:${vanishSource}:${vanishTarget}:${params.amount}:${loanSol}:${timestamp}:${jitoTip}`;
   const sig = nacl.sign.detached(
     new TextEncoder().encode(message),
     params.keypair.secretKey
@@ -55,8 +64,8 @@ async function realCreateTrade(params: {
     headers: vanishHeaders(),
     body: JSON.stringify({
       user_address: params.keypair.publicKey.toBase58(),
-      source_token_address: params.sourceMint,
-      target_token_address: params.targetMint,
+      source_token_address: vanishSource,
+      target_token_address: vanishTarget,
       amount: params.amount,
       swap_transaction: params.unsignedSwapBase64,
       one_time_wallet: params.oneTimeWallet,
@@ -83,9 +92,20 @@ async function realCommit(txId: string): Promise<VanishCommitStatus> {
   return data.status as VanishCommitStatus;
 }
 
-async function realGetBalances(_keypair: Keypair): Promise<{ token: string; amount: string }[]> {
+async function realGetBalances(keypair: Keypair): Promise<{ token: string; amount: string }[]> {
+  const timestamp = Date.now().toString();
+  const message = `By signing, I hereby agree to Vanish's Terms of Service and agree to be bound by them (docs.vanish.trade/legal/TOS)\n\nDetails: read:${timestamp}`;
+  const sig = nacl.sign.detached(new TextEncoder().encode(message), keypair.secretKey);
+  const signature = Buffer.from(sig).toString('base64');
+
   const res = await fetch(`${VANISH_BASE}/account/balances`, {
+    method: 'POST',
     headers: vanishHeaders(),
+    body: JSON.stringify({
+      user_address: keypair.publicKey.toBase58(),
+      timestamp,
+      signature,
+    }),
   });
   if (!res.ok) return [];
   const data = await res.json();
@@ -130,7 +150,7 @@ async function mockGetBalances(): Promise<{ token: string; amount: string }[]> {
 // ── Public API (switches between real and mock) ──
 
 export const vanish = {
-  getDepositAddress: USE_MOCK ? mockGetDepositAddress : realGetDepositAddress,
+  getDepositAddress: USE_MOCK ? mockGetDepositAddress : (tokenAddress?: string, userAddress?: string) => realGetDepositAddress(tokenAddress, userAddress),
   getOneTimeWallet: USE_MOCK ? mockGetOneTimeWallet : realGetOneTimeWallet,
   createTrade: USE_MOCK ? mockCreateTrade : realCreateTrade,
   commit: USE_MOCK ? mockCommit : realCommit,
@@ -138,11 +158,11 @@ export const vanish = {
   isMock: USE_MOCK,
 };
 
-export function buildPrivacyScore(oneTimeWallet: string, loanAmount: string = '0.012 SOL'): PrivacyScore {
+export function buildPrivacyScore(_oneTimeWallet: string, loanAmount: string = '0.005 SOL'): PrivacyScore {
   return {
-    oneTimeWallet: !oneTimeWallet.startsWith('Mock'),
-    noOnchainLink: !oneTimeWallet.startsWith('Mock'),
-    jitoProtected: !oneTimeWallet.startsWith('Mock'),
+    oneTimeWallet: !USE_MOCK,
+    noOnchainLink: !USE_MOCK,
+    jitoProtected: !USE_MOCK,
     loanAmount,
   };
 }
