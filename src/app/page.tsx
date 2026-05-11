@@ -192,7 +192,7 @@ export default function HomePage() {
 
           <p className="x9-hc-subtitle">
             Deploy AI trading agents on Solana with Swig enforcement. Claude reasons,
-            policy guards, Jupiter executes. No counterparty risk.
+            policy guards, Jupiter executes, all without counterparty risk.
           </p>
 
           <div className="x9-hc-cta-row">
@@ -427,7 +427,7 @@ function NetworkGraph() {
   return (
     <svg
       className="x9-hc-network-svg"
-      viewBox="0 0 520 620"
+      viewBox="0 0 560 620"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
       aria-hidden="true"
@@ -461,27 +461,27 @@ function NetworkGraph() {
 
       {/* Edges — drawn via stroke-dashoffset animation */}
       <line x1="260" y1="200" x2="140" y2="100" stroke="#00ff88" strokeWidth="1.5" strokeDasharray="1000" className="x9-hc-edge x9-hc-edge-1" />
-      <line x1="260" y1="200" x2="400" y2="110" stroke="#00ff88" strokeWidth="1.5" strokeDasharray="1000" className="x9-hc-edge x9-hc-edge-2" />
+      <line x1="260" y1="200" x2="370" y2="110" stroke="#00ff88" strokeWidth="1.5" strokeDasharray="1000" className="x9-hc-edge x9-hc-edge-2" />
       <line x1="260" y1="200" x2="100" y2="300" stroke="#06b6d4" strokeWidth="1"   strokeDasharray="1000" className="x9-hc-edge x9-hc-edge-3" />
-      <line x1="260" y1="200" x2="420" y2="310" stroke="#06b6d4" strokeWidth="1"   strokeDasharray="1000" className="x9-hc-edge x9-hc-edge-4" />
+      <line x1="260" y1="200" x2="390" y2="310" stroke="#06b6d4" strokeWidth="1"   strokeDasharray="1000" className="x9-hc-edge x9-hc-edge-4" />
       <line x1="260" y1="200" x2="180" y2="420" stroke="#00ff88" strokeWidth="1"   strokeDasharray="1000" className="x9-hc-edge x9-hc-edge-5" />
       <line x1="260" y1="200" x2="380" y2="500" stroke="#06b6d4" strokeWidth="1"   strokeDasharray="1000" className="x9-hc-edge x9-hc-edge-6" />
       <line x1="260" y1="200" x2="260" y2="540" stroke="#00ff88" strokeWidth="1"   strokeDasharray="1000" className="x9-hc-edge x9-hc-edge-7" />
       <line x1="260" y1="200" x2="90"  y2="185" stroke="#f97316" strokeWidth="1"   strokeDasharray="1000" className="x9-hc-edge x9-hc-edge-8" />
-      <line x1="260" y1="200" x2="450" y2="430" stroke="#00ff88" strokeWidth="1"   strokeDasharray="1000" className="x9-hc-edge x9-hc-edge-9" />
-      <line x1="420" y1="310" x2="380" y2="500" stroke="#06b6d4" strokeWidth="0.5" strokeOpacity="0.3" />
+      <line x1="260" y1="200" x2="410" y2="430" stroke="#00ff88" strokeWidth="1"   strokeDasharray="1000" className="x9-hc-edge x9-hc-edge-9" />
+      <line x1="390" y1="310" x2="380" y2="500" stroke="#06b6d4" strokeWidth="0.5" strokeOpacity="0.3" />
 
       {/* Nodes */}
       <GraphNode cx={260} cy={200} r={18} color="#00ff88" label="x9.core"   side="right" core />
       <GraphNode cx={140} cy={100} r={10} color="#00ff88" label="Alpha-01"  side="left" />
-      <GraphNode cx={400} cy={110} r={10} color="#06b6d4" label="Claude AI" side="right" />
+      <GraphNode cx={370} cy={110} r={10} color="#06b6d4" label="Claude AI" side="right" />
       <GraphNode cx={100} cy={300} r={8}  color="#06b6d4" label="Scalp-07"  side="left" />
-      <GraphNode cx={420} cy={310} r={8}  color="#00ff88" label="Hedge-03"  side="right" />
+      <GraphNode cx={390} cy={310} r={8}  color="#00ff88" label="Hedge-03"  side="right" />
       <GraphNode cx={180} cy={420} r={10} color="#00ff88" label="Policy"    side="left" />
       <GraphNode cx={380} cy={500} r={8}  color="#06b6d4" label="Swig"      side="right" />
       <GraphNode cx={260} cy={540} r={8}  color="#00ff88" label="Jupiter"   side="right" />
       <GraphNode cx={90}  cy={185} r={8}  color="#f97316" label="GoldRush"  side="left" />
-      <GraphNode cx={450} cy={430} r={8}  color="#00ff88" label="Vanish"    side="right" />
+      <GraphNode cx={410} cy={430} r={8}  color="#00ff88" label="Vanish"    side="right" />
     </svg>
   );
 }
