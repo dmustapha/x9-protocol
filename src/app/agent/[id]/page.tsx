@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
+import { useAccounts } from '@phantom/react-sdk';
 import TradeFeed from '@/components/dashboard/TradeFeed';
 import PolicyPanel from '@/components/dashboard/PolicyPanel';
 import PnLChart from '@/components/dashboard/PnLChart';
@@ -22,6 +23,8 @@ interface WalletData {
 
 export default function AgentDetailPage() {
   const { id } = useParams<{ id: string }>();
+  const accounts = useAccounts();
+  const walletAddress = accounts?.find((a) => a.addressType === 'Solana')?.address ?? '';
   const [agent, setAgent] = useState<AgentResponse & { policyRules: ActionConfig[] } | null>(null);
   const [trades, setTrades] = useState<TradeResponse[]>([]);
   const [pnl, setPnl] = useState<PnLData[]>([]);
@@ -41,7 +44,10 @@ export default function AgentDetailPage() {
 
   const handleToggle = async () => {
     const action = agent.status === 'active' ? 'stop' : 'start';
-    await fetch(`/api/agent/${id}/${action}`, { method: 'POST' });
+    const url = walletAddress
+      ? `/api/agent/${id}/${action}?wallet=${walletAddress}`
+      : `/api/agent/${id}/${action}`;
+    await fetch(url, { method: 'POST' });
     const updated = await fetch(`/api/agent/${id}`).then(r => r.json());
     setAgent(updated);
   };
