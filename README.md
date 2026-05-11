@@ -4,11 +4,15 @@ Deploy an AI agent, define a risk policy in plain English, and let it trade. Eve
 
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.4-3178C6?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
 [![Next.js](https://img.shields.io/badge/Next.js-15-black?logo=next.js)](https://nextjs.org/)
-[![Solana](https://img.shields.io/badge/Solana-Devnet-9945FF?logo=solana&logoColor=white)](https://solana.com/)
-[![Tests](https://img.shields.io/badge/tests-97_passing-brightgreen)]()
+[![Solana](https://img.shields.io/badge/Solana-Mainnet-9945FF?logo=solana&logoColor=white)](https://solana.com/)
+[![Tests](https://img.shields.io/badge/tests-33_passing-brightgreen)]()
 [![License](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 
 ![Landing](docs/images/landing.png)
+
+## Live Demo
+**[x9-protocol.vercel.app](https://x9-protocol.vercel.app)**
+Connect a Phantom wallet, deploy an agent, and watch it trade.
 
 ---
 
@@ -55,7 +59,7 @@ The result: a system where you set the rules once and the agent operates within 
 | Database | Prisma + SQLite |
 | Styling | Tailwind CSS 4 with x9 design tokens |
 | AI | Claude Haiku 4.5 (trade decisions), Claude Sonnet 4.6 (policy translation) |
-| Blockchain | Solana (devnet), @solana/web3.js |
+| Blockchain | Solana (mainnet), @solana/web3.js |
 | Wallet | Phantom Connect + embedded wallet |
 
 ## Integrations
@@ -99,7 +103,7 @@ Open `http://localhost:3002`.
 | `SWIG_API_KEY` | Yes | Swig policy enforcement |
 | `NEXT_PUBLIC_PHANTOM_APP_ID` | Yes | Phantom embedded wallet app ID |
 | `CRON_SECRET` | Yes | Auth token for the agent-loop cron endpoint |
-| `SOLANA_RPC_URL` | Yes | Solana RPC (default: devnet) |
+| `SOLANA_RPC_URL` | Yes | Solana RPC (mainnet-beta recommended) |
 | `GOLDRUSH_API_KEY` | No | GoldRush (Covalent) — live portfolio; mock fallback if unset |
 | `VANISH_API_KEY` | No | Vanish privacy routing — mock fallback if unset |
 | `DUNE_API_KEY` | No | Dune Analytics — DB-derived fallback if unset |

@@ -4,7 +4,7 @@
  */
 import { describe, it, expect, beforeAll } from 'vitest';
 
-const BASE = 'http://localhost:3002';
+const BASE = process.env.TEST_BASE_URL || 'http://localhost:3000';
 const CRON_SECRET = 'x9-cron-secret-dev';
 
 async function post(path: string, payload: unknown, auth?: string, contentType = 'application/json') {
@@ -24,7 +24,8 @@ async function get(path: string) {
 
 beforeAll(async () => {
   const res = await fetch(`${BASE}/`).catch(() => null);
-  if (!res?.ok) throw new Error('Dev server not running on port 3002');
+  if (!res?.ok) throw new Error(`Dev server not running on ${BASE}`);
+
 });
 
 // ─── POST /api/agent/create edge cases ───────────────────────────────────────
@@ -48,7 +49,7 @@ describe('Edge cases: POST /api/agent/create', () => {
     const { status } = await post('/api/agent/create', {
       ownerWallet: 'SafeWallet111111111111111111111111111111',
       strategyText: "'; DROP TABLE Agent; --",
-    });
+    }, `Bearer ${CRON_SECRET}`);
     // Should either succeed (sanitized) or return a controlled error, never 500 crash
     expect([200, 400, 500]).toContain(status);
     // DB should still be reachable after
@@ -61,7 +62,7 @@ describe('Edge cases: POST /api/agent/create', () => {
       ownerWallet: 'XSSWallet1111111111111111111111111111111',
       name: '<script>alert("xss")</script>',
       strategyText: 'Buy low sell high.',
-    });
+    }, `Bearer ${CRON_SECRET}`);
     // Should succeed (stored as text) or reject; must not execute
     if (status === 200) {
       expect(body.agent.name).toBe('<script>alert("xss")</script>'); // stored raw, not executed
@@ -73,14 +74,14 @@ describe('Edge cases: POST /api/agent/create', () => {
     const { status } = await post('/api/agent/create', {
       ownerWallet: 'LongWallet1111111111111111111111111111111',
       strategyText: longStrategy,
-    });
+    }, `Bearer ${CRON_SECRET}`);
     expect([200, 400, 413]).toContain(status); // must not hang or crash
   });
 
   it('handles malformed JSON body gracefully', async () => {
     const res = await fetch(`${BASE}/api/agent/create`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${CRON_SECRET}` },
       body: '{invalid json',
     });
     expect([400, 500]).toContain(res.status);

@@ -90,18 +90,20 @@ describe('AI Agent: Vanish mock mode edge cases', () => {
     expect(typeof score.oneTimeWallet).toBe('boolean');
   });
 
-  it('buildPrivacyScore with undefined-like wallet (coerced empty string)', () => {
+  it('buildPrivacyScore with undefined-like wallet (flags depend on !USE_MOCK)', () => {
     const score = buildPrivacyScore('undefined');
-    expect(score.oneTimeWallet).toBe(true); // 'undefined' string doesn't start with 'Mock'
+    // Flags are !USE_MOCK — true when VANISH_API_KEY is set, false in mock mode
+    const expectedFlag = !!process.env.VANISH_API_KEY;
+    expect(score.oneTimeWallet).toBe(expectedFlag);
   });
 
-  it('buildPrivacyScore consistently identifies mock wallets', () => {
-    const mockWallets = ['MockWallet1', 'Mock-abc123', 'MockOneTime_xyz'];
-    for (const wallet of mockWallets) {
-      const score = buildPrivacyScore(wallet);
-      expect(score.oneTimeWallet).toBe(false);
-      expect(score.noOnchainLink).toBe(false);
-      expect(score.jitoProtected).toBe(false);
+  it('buildPrivacyScore returns consistent flags regardless of wallet string prefix', () => {
+    // Flags depend only on USE_MOCK (!VANISH_API_KEY), not on wallet address content
+    const scores = ['MockWallet1', 'Mock-abc123', 'RealWallet123'].map(buildPrivacyScore);
+    for (const score of scores) {
+      expect(score.oneTimeWallet).toBe(scores[0].oneTimeWallet);
+      expect(score.noOnchainLink).toBe(scores[0].noOnchainLink);
+      expect(score.jitoProtected).toBe(scores[0].jitoProtected);
     }
   });
 

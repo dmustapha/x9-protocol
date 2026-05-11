@@ -11,6 +11,7 @@ async function seed() {
   await db.trade.deleteMany();
   await db.pricePoint.deleteMany();
   await db.policyConfig.deleteMany();
+  await db.duneCache.deleteMany();
   await db.agent.deleteMany();
 
   // Create agent keypair

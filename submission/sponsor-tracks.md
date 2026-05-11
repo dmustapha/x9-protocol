@@ -12,7 +12,7 @@
 - Depth: Deep — VanishClient.getOneTimeWallet() + createTrade() + commit()
 - Evidence: vanishTxId stored on each executed Trade; privacy score displayed per trade
 - Code: src/lib/vanish.ts, src/lib/agent-engine.ts (Step 6)
-- Status: Fully wired; mock mode active (VANISH_API_KEY empty)
+- Status: LIVE — production API key active (https://core-api.vanish.trade)
 
 ## Metaplex Core 014
 - Integration: Every agent minted as an on-chain Core NFT on deployment

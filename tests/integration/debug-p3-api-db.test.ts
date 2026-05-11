@@ -2,11 +2,11 @@
  * debug-p3-api-db.test.ts
  * Phase 3: Integration tests — API routes ↔ SQLite DB
  * Tests every API route's connection to the database layer.
- * Server must be running on port 3002 before this suite executes.
+ * Server must be running on port 3000 before this suite executes.
  */
 import { describe, it, expect, beforeAll } from 'vitest';
 
-const BASE = 'http://localhost:3002';
+const BASE = process.env.TEST_BASE_URL || 'http://localhost:3000';
 const CRON_SECRET = 'x9-cron-secret-dev';
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
@@ -29,7 +29,7 @@ async function post(path: string, payload: unknown, auth?: string) {
 // ─── Preflight: server must be up ────────────────────────────────────────────
 beforeAll(async () => {
   const res = await fetch(`${BASE}/api/dashboard/overview`).catch(() => null);
-  if (!res?.ok) throw new Error('Dev server not running on port 3002. Start it before running integration tests.');
+  if (!res?.ok) throw new Error('Dev server not running on port 3000. Start it before running integration tests.');
 });
 
 // ─── Layer 1: Dashboard overview ↔ DB ────────────────────────────────────────
@@ -77,7 +77,7 @@ describe('API↔DB: agent CRUD', () => {
       ownerWallet: 'TestWallet111111111111111111111111111111111',
       name: 'Debug Integration Test Agent',
       strategyText: 'Buy when RSI < 30, sell when RSI > 70, max 0.1 SOL per trade',
-    });
+    }, `Bearer ${CRON_SECRET}`);
     expect(status).toBe(200);
     expect(body.agent).toBeDefined();
     expect(body.agent.id).toBeTruthy();
@@ -95,7 +95,7 @@ describe('API↔DB: agent CRUD', () => {
   });
 
   it('starts the agent and updates DB status', async () => {
-    const { status, body } = await post(`/api/agent/${createdAgentId}/start`, {});
+    const { status, body } = await post(`/api/agent/${createdAgentId}/start`, {}, `Bearer ${CRON_SECRET}`);
     expect(status).toBe(200);
     expect(body.status).toBe('active');
   });
@@ -106,7 +106,7 @@ describe('API↔DB: agent CRUD', () => {
   });
 
   it('stops the agent and updates DB status', async () => {
-    const { status, body } = await post(`/api/agent/${createdAgentId}/stop`, {});
+    const { status, body } = await post(`/api/agent/${createdAgentId}/stop`, {}, `Bearer ${CRON_SECRET}`);
     expect(status).toBe(200);
     expect(body.status).toBe('stopped');
   });

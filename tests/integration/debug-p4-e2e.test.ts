@@ -2,11 +2,11 @@
  * debug-p4-e2e.test.ts
  * Phase 4: E2E tests — all 6 PRD user flows, Tier 2 (API/curl level)
  * Tests happy path + primary error path per flow.
- * Server must be running on port 3002.
+ * Server must be running on port 3000.
  */
 import { describe, it, expect, beforeAll } from 'vitest';
 
-const BASE = 'http://localhost:3002';
+const BASE = process.env.TEST_BASE_URL || 'http://localhost:3000';
 const CRON_SECRET = 'x9-cron-secret-dev';
 
 async function get(path: string) {
@@ -22,7 +22,7 @@ async function post(path: string, payload: unknown, auth?: string) {
 
 beforeAll(async () => {
   const res = await fetch(`${BASE}/`).catch(() => null);
-  if (!res?.ok) throw new Error('Dev server not running on port 3002');
+  if (!res?.ok) throw new Error('Dev server not running on port 3000');
 });
 
 // ─── Flow 1: Connect Wallet and Onboard ──────────────────────────────────────
@@ -62,7 +62,7 @@ describe('Flow 2: Deploy agent with natural language policy', () => {
       ownerWallet: 'E2ETestWallet11111111111111111111111111111',
       name: 'E2E Flow 2 Agent',
       strategyText: 'Moderate SOL trader. Max 0.3 SOL per trade, 1.5 SOL per day.',
-    });
+    }, `Bearer ${CRON_SECRET}`);
     expect(status).toBe(200);
     expect(body.agent).toBeDefined();
     expect(body.agent.status).toBe('paused'); // must not auto-start
@@ -75,7 +75,7 @@ describe('Flow 2: Deploy agent with natural language policy', () => {
     const { body } = await post('/api/agent/create', {
       ownerWallet: 'E2ETestWallet22222222222222222222222222222',
       strategyText: 'Conservative: max 0.1 SOL per trade, 0.5 SOL per day.',
-    });
+    }, `Bearer ${CRON_SECRET}`);
     const types = body.policy.map((r: { type: string }) => r.type);
     expect(types).toContain('SolLimit');
     expect(types).toContain('SolRecurringLimit');
@@ -92,7 +92,7 @@ describe('Flow 2: Deploy agent with natural language policy', () => {
     const { status } = await post('/api/agent/create', {
       ownerWallet: 'SomeWallet',
       // no strategyText
-    });
+    }, `Bearer ${CRON_SECRET}`);
     expect(status).toBe(400);
   });
 });
@@ -138,7 +138,7 @@ describe('Flow 4: Policy block event (THE core demo flow)', () => {
       ownerWallet: 'BlockTestWallet33333333333333333333333333',
       name: 'Block Test Agent',
       strategyText: 'Very restrictive: max 0.001 SOL per trade.',
-    });
+    }, `Bearer ${CRON_SECRET}`);
     blockAgentId = body.agent.id;
     expect(blockAgentId).toBeTruthy();
   });
@@ -158,17 +158,17 @@ describe('Flow 4: Policy block event (THE core demo flow)', () => {
   });
 
   it('agent can be stopped after being blocked', async () => {
-    const { status, body } = await post(`/api/agent/${blockAgentId}/stop`, {});
+    const { status, body } = await post(`/api/agent/${blockAgentId}/stop`, {}, `Bearer ${CRON_SECRET}`);
     expect(status).toBe(200);
     expect(body.status).toBe('stopped');
   });
 
   it('stopped agent can be restarted (recovery after block)', async () => {
-    const { status, body } = await post(`/api/agent/${blockAgentId}/start`, {});
+    const { status, body } = await post(`/api/agent/${blockAgentId}/start`, {}, `Bearer ${CRON_SECRET}`);
     expect(status).toBe(200);
     expect(body.status).toBe('active');
     // Clean up: stop it
-    await post(`/api/agent/${blockAgentId}/stop`, {});
+    await post(`/api/agent/${blockAgentId}/stop`, {}, `Bearer ${CRON_SECRET}`);
   });
 });
 
@@ -179,7 +179,7 @@ describe('Flow 5: Vanish private trade (mock mode)', () => {
       ownerWallet: 'VanishTestWallet44444444444444444444444444',
       name: 'Vanish Test Agent',
       strategyText: 'Test agent for vanish verification.',
-    });
+    }, `Bearer ${CRON_SECRET}`);
     expect(body.agent.vanishDepositAddr).toBeTruthy();
   });
 

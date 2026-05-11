@@ -68,3 +68,16 @@ npm-debug.log*
 .*.json
 .vercel
 .env*.local
+
+# Local dev utilities
+tasks/
+scripts/vanish-*.ts
+scripts/vanish_*.ts
+scripts/enroll-ika.ts
+scripts/fix-swig-wallet.ts
+scripts/fund-agents.ts
+scripts/mint-pending.ts
+scripts/setup-dune-queries.ts
+scripts/swap-usdt-to-sol.ts
+tsconfig.scripts.json
+.env.production.example
