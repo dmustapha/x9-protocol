@@ -1,22 +1,36 @@
 import type { TradeResponse } from '@/types';
-import { LAMPORTS_PER_SOL } from '@/types';
+import { getTokenByMint } from '@/lib/token-registry';
+import { SOL_MINT, LAMPORTS_PER_SOL } from '@/types';
+
+function formatTradeAmount(token: string, amountLamports: string): string {
+  const raw = parseInt(amountLamports);
+  if (!raw || raw <= 0) return '—';
+  const entry = getTokenByMint(token);
+  const decimals = entry?.decimals ?? (token === SOL_MINT ? 9 : 9);
+  const symbol = entry?.symbol ?? token.slice(0, 6);
+  const amount = raw / Math.pow(10, decimals);
+  return `${amount.toFixed(decimals <= 6 ? 2 : 4)} ${symbol}`;
+}
 
 export default function TradeFeed({ trades }: { trades: TradeResponse[] }) {
   return (
     <div className="x9-card" style={{ height: '100%' }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
         <div className="x9-card-label" style={{ margin: 0 }}>Trade Feed</div>
-        <span className="x9-badge x9-badge--green">
-          <span className="x9-status-dot x9-animate-pulse-dot" style={{ width: 5, height: 5 }} />
-          LIVE
-        </span>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <span style={{ fontSize: 11, color: 'var(--color-x9-text-dim)' }}>1 decision per 5-min cycle</span>
+          <span className="x9-badge x9-badge--green">
+            <span className="x9-status-dot x9-animate-pulse-dot" style={{ width: 5, height: 5 }} />
+            LIVE
+          </span>
+        </div>
       </div>
       <div style={{ maxHeight: 320, overflowY: 'auto' }}>
         {trades.map((t) => {
           const isBuy = t.action === 'buy';
           const isSell = t.action === 'sell';
           const isBlocked = t.action === 'blocked';
-          const amtSol = (parseInt(t.amountLamports) / LAMPORTS_PER_SOL).toFixed(3);
+          const amountDisplay = t.action !== 'hold' ? formatTradeAmount(t.token, t.amountLamports) : '—';
 
           return (
             <div key={t.id} className="x9-trade-row">
@@ -33,7 +47,7 @@ export default function TradeFeed({ trades }: { trades: TradeResponse[] }) {
                   {t.action.toUpperCase()}
                 </span>
                 <span style={{ fontSize: 12, color: 'var(--color-x9-text-muted)' }}>
-                  {t.action !== 'hold' ? `${amtSol} SOL` : '—'}
+                  {amountDisplay}
                 </span>
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>

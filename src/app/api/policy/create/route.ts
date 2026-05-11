@@ -15,8 +15,8 @@ export async function POST(req: Request) {
   }
 
   try {
-    const policyRules = await strategyToPolicy(strategyText);
-    return NextResponse.json({ rules: policyRules });
+    const { rules, tradeableTokens, interpretation } = await strategyToPolicy(strategyText);
+    return NextResponse.json({ rules, tradeableTokens, interpretation });
   } catch (err) {
     return NextResponse.json({ error: 'Policy generation failed', detail: String(err) }, { status: 500 });
   }

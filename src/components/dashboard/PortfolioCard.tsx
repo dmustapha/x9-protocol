@@ -27,7 +27,7 @@ export default function PortfolioCard({ walletAddress }: Props) {
   if (!portfolio) {
     return (
       <div className="x9-card">
-        <div className="x9-card-label">On-Chain Portfolio</div>
+        <div className="x9-card-label">Connected Wallet</div>
         <div style={{ color: 'var(--color-x9-text-dim)', fontSize: 12 }}>Loading...</div>
       </div>
     );
@@ -36,7 +36,7 @@ export default function PortfolioCard({ walletAddress }: Props) {
   return (
     <div className="x9-card">
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
-        <div className="x9-card-label">On-Chain Portfolio</div>
+        <div className="x9-card-label">Connected Wallet</div>
         <span className={`x9-badge ${portfolio.source === 'goldrush' ? 'x9-badge--green' : 'x9-badge--yellow'}`}>
           {portfolio.source === 'goldrush' ? 'GoldRush · LIVE' : 'Mock · Devnet'}
         </span>

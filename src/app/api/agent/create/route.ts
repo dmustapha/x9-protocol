@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { strategyToPolicy } from '@/lib/claude';
 import { createPolicy, createWallet } from '@/lib/swig';
+import type { ActionConfig } from '@/types';
 import { registerAgent } from '@/lib/metaplex';
 import { vanish } from '@/lib/vanish';
 import { registerSNSDomain } from '@/lib/sns';
@@ -28,13 +29,13 @@ function checkRateLimit(ip: string): boolean {
 
 export async function POST(req: Request) {
   // Parse and validate body first — invalid requests don't consume rate limit slots
-  let body: { ownerWallet?: string; name?: string; strategyText?: string };
+  let body: { ownerWallet?: string; name?: string; strategyText?: string; policyRules?: ActionConfig[] };
   try {
     body = await req.json();
   } catch {
     return NextResponse.json({ error: 'Invalid JSON' }, { status: 400 });
   }
-  const { ownerWallet, name: rawName, strategyText } = body;
+  const { ownerWallet, name: rawName, strategyText, policyRules: prebuiltRules } = body;
 
   if (!ownerWallet || !strategyText) {
     return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
@@ -75,8 +76,11 @@ export async function POST(req: Request) {
   });
 
   try {
-    // Convert NL strategy → Swig ActionConfig
-    const policyRules = await strategyToPolicy(strategyText);
+    // Use pre-generated rules from deploy wizard if provided — avoids second Sonnet call
+    // and ensures deployed rules match what the user reviewed and approved
+    const policyRules: ActionConfig[] = (Array.isArray(prebuiltRules) && prebuiltRules.length > 0)
+      ? prebuiltRules
+      : (await strategyToPolicy(strategyText!)).rules;
 
     // Create Swig policy (graceful fallback when Swig devnet API is unavailable)
     let swigPolicyId = `mock-policy-${agent.id.slice(0, 8)}`;

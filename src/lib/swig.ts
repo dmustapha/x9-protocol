@@ -1,5 +1,6 @@
 import { SwigClient } from '@swig-wallet/developer';
 import type { ActionConfig, AgentPolicy } from '@/types';
+import { SOL_MINT } from '@/types';
 
 const SWIG_API_KEY = process.env.SWIG_API_KEY ?? '';
 const SWIG_PORTAL_URL = 'https://dashboard.onswig.com';
@@ -58,7 +59,7 @@ export function preCheckTrade(
   solUsedToday: number,
   tokenUsedToday: Map<string, number> = new Map(),
 ): { allowed: boolean; violatedRule?: string; limit?: string } {
-  const isSol = decision.token.startsWith('So1');
+  const isSol = decision.token === SOL_MINT;
 
   for (const rule of policyRules) {
     // Per-trade SOL cap

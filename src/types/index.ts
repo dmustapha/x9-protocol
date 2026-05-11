@@ -13,10 +13,17 @@ export type VanishCommitStatus = 'completed' | 'pending' | 'failed' | 'expired' 
 
 // ── Core Data Structures ──
 
+export interface TradeableToken {
+  symbol: string;
+  mint: string;
+  decimals: number;
+  tier: 'blue_chip' | 'mid' | 'degen';
+}
+
 export interface TradeDecision {
   action: TradeAction;
   token: string;
-  amount_lamports: number;
+  amount_usd: number;
   reason: string;
 }
 
@@ -56,6 +63,8 @@ export interface AgentResponse {
   swigWalletAddress: string | null;
   metaplexNftAddress: string | null;
   createdAt: string;
+  agentPublicKey?: string | null;
+  vanishDepositAddr?: string | null;
 }
 
 export interface TradeResponse {
@@ -108,6 +117,10 @@ export interface MarketContext {
   portfolio: { sol: number; usdc: number };
   recentTrades: TradeResponse[];
   policyUsage: { solUsedToday: number; solDailyLimit: number };
+  tradeableTokens: TradeableToken[];
+  tokenPrices: Record<string, number>;
+  tokenBalances: Record<string, number>;
+  tokenRsiValues: Record<string, number | null>;
 }
 
 export interface AgentLoopResult {

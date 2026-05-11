@@ -19,6 +19,7 @@ export default function DeployConfirm({
   const [status, setStatus] = useState<'idle' | 'deploying' | 'done' | 'error'>('idle');
   const [error, setError] = useState('');
   const [agentId, setAgentId] = useState('');
+  const [agentPublicKey, setAgentPublicKey] = useState('');
   const accounts = useAccounts();
   const router = useRouter();
   const walletAddress = accounts?.find((a) => a.addressType === 'Solana')?.address;
@@ -38,12 +39,14 @@ export default function DeployConfirm({
           ownerWallet: walletAddress,
           name: agentName,
           strategyText: strategy,
+          policyRules: rules,
         }),
       });
 
       if (!res.ok) throw new Error(await res.text());
       const data = await res.json();
       setAgentId(data.agent.id);
+      setAgentPublicKey(data.agent.agentPublicKey ?? '');
       onDeployed(data.agent.id);
       setStatus('done');
     } catch (err) {
@@ -58,8 +61,14 @@ export default function DeployConfirm({
         <div className="x9-mono" style={{ fontSize: 32, color: 'var(--color-x9-accent)' }}>✓</div>
         <div style={{ fontWeight: 600, fontSize: 16, color: 'var(--color-x9-accent)' }}>Agent Deployed</div>
         <p style={{ fontSize: 13, color: 'var(--color-x9-text-muted)', margin: 0 }}>
-          Your agent is ready. Start it from the dashboard.
+          Your agent is ready. Fund it with at least 0.01 SOL to start trading.
         </p>
+        {agentPublicKey && (
+          <div style={{ background: 'var(--color-x9-surface-2)', border: '1px solid var(--color-x9-border)', borderRadius: 8, padding: '10px 14px', textAlign: 'left' }}>
+            <div style={{ fontSize: 11, color: 'var(--color-x9-text-muted)', marginBottom: 4 }}>Send SOL to agent wallet:</div>
+            <div className="x9-mono" style={{ fontSize: 12, wordBreak: 'break-all', color: 'var(--color-x9-accent)' }}>{agentPublicKey}</div>
+          </div>
+        )}
         <button
           onClick={() => router.push(`/agent/${agentId}`)}
           className="x9-btn-primary"

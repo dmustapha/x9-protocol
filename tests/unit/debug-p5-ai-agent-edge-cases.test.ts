@@ -99,7 +99,7 @@ describe('AI Agent: Vanish mock mode edge cases', () => {
 
   it('buildPrivacyScore returns consistent flags regardless of wallet string prefix', () => {
     // Flags depend only on USE_MOCK (!VANISH_API_KEY), not on wallet address content
-    const scores = ['MockWallet1', 'Mock-abc123', 'RealWallet123'].map(buildPrivacyScore);
+    const scores = ['MockWallet1', 'Mock-abc123', 'RealWallet123'].map(w => buildPrivacyScore(w));
     for (const score of scores) {
       expect(score.oneTimeWallet).toBe(scores[0].oneTimeWallet);
       expect(score.noOnchainLink).toBe(scores[0].noOnchainLink);

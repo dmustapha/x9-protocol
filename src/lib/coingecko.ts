@@ -1,4 +1,5 @@
 const COINGECKO_BASE = 'https://api.coingecko.com/api/v3';
+const JUPITER_PRICE_BASE = 'https://api.jup.ag/price/v2';
 const COINGECKO_TIMEOUT_MS = 8_000;
 
 let cachedPrices: { sol: number; usdc: number; fetchedAt: number } | null = null;
@@ -30,4 +31,32 @@ export async function fetchPrices(): Promise<{ sol: number; usdc: number }> {
   };
 
   return { sol: cachedPrices.sol, usdc: cachedPrices.usdc };
+}
+
+// Fetch USD prices for arbitrary Solana token mints via Jupiter Price API.
+// Returns a map of mint → USD price. Mints not found in Jupiter return no entry.
+export async function fetchTokenPrices(mints: string[]): Promise<Record<string, number>> {
+  if (mints.length === 0) return {};
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), COINGECKO_TIMEOUT_MS);
+  try {
+    const res = await fetch(
+      `${JUPITER_PRICE_BASE}?ids=${mints.join(',')}`,
+      { signal: controller.signal }
+    );
+    if (!res.ok) return {};
+    const data = await res.json();
+    const prices: Record<string, number> = {};
+    for (const [mint, info] of Object.entries(data.data ?? {})) {
+      const price = (info as { price?: number }).price;
+      if (typeof price === 'number' && price > 0) {
+        prices[mint] = price;
+      }
+    }
+    return prices;
+  } catch {
+    return {};
+  } finally {
+    clearTimeout(timer);
+  }
 }

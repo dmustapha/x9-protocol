@@ -12,6 +12,7 @@ export interface TokenBalance {
   symbol: string;
   balance: number;
   quoteUsd: number;
+  contractAddress?: string;
 }
 
 export interface GoldRushPortfolio {
@@ -53,6 +54,7 @@ export async function getWalletPortfolio(walletAddress: string): Promise<GoldRus
           symbol: String(item.contract_ticker_symbol ?? 'UNKNOWN'),
           balance,
           quoteUsd: Number(item.quote ?? 0),
+          contractAddress: String(item.contract_address ?? ''),
         };
       }
     );
