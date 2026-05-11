@@ -10,6 +10,17 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
   return NextResponse.json(agent);
 }
 
+export async function DELETE(req: Request, { params }: { params: Promise<{ id: string }> }) {
+  const auth = req.headers.get('authorization');
+  if (auth !== `Bearer ${process.env.CRON_SECRET}`) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  const { id } = await params;
+  await db.trade.deleteMany({ where: { agentId: id } });
+  await db.blockEvent.deleteMany({ where: { agentId: id } });
+  await db.policyConfig.deleteMany({ where: { agentId: id } });
+  await db.agent.delete({ where: { id } });
+  return NextResponse.json({ deleted: id });
+}
+
 export async function GET(req: Request, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const { searchParams } = new URL(req.url);

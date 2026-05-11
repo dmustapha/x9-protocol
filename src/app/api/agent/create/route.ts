@@ -50,7 +50,12 @@ export async function POST(req: Request) {
     }
   }
 
-  const name = rawName || `Agent-${Date.now().toString(36).toUpperCase()}`;
+  const name = (rawName ?? '')
+    .replace(/<[^>]*>/g, '')       // strip HTML tags
+    .replace(/[^\w\s\-_.]/g, '')   // allow only safe chars
+    .trim()
+    .slice(0, 50)
+    || `Agent-${Date.now().toString(36).toUpperCase()}`;
 
   // Generate agent keypair
   const agentKeypair = Keypair.generate();
