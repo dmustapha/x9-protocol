@@ -1,12 +1,11 @@
 import type { TradeResponse } from '@/types';
 import { getTokenByMint } from '@/lib/token-registry';
-import { SOL_MINT, LAMPORTS_PER_SOL } from '@/types';
 
 function formatTradeAmount(token: string, amountLamports: string): string {
   const raw = parseInt(amountLamports);
   if (!raw || raw <= 0) return '—';
   const entry = getTokenByMint(token);
-  const decimals = entry?.decimals ?? (token === SOL_MINT ? 9 : 9);
+  const decimals = entry?.decimals ?? 9;
   const symbol = entry?.symbol ?? token.slice(0, 6);
   const amount = raw / Math.pow(10, decimals);
   return `${amount.toFixed(decimals <= 6 ? 2 : 4)} ${symbol}`;

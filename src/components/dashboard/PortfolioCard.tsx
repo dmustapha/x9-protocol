@@ -37,8 +37,9 @@ export default function PortfolioCard({ walletAddress }: Props) {
     <div className="x9-card">
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
         <div className="x9-card-label">Connected Wallet</div>
-        <span className={`x9-badge ${portfolio.source === 'goldrush' ? 'x9-badge--green' : 'x9-badge--yellow'}`}>
+        <span className={`x9-badge ${portfolio.source === 'goldrush' ? 'x9-badge--green' : 'x9-badge--muted'}`}>
           {portfolio.source === 'goldrush' ? 'GoldRush · LIVE' : 'Mock data'}
+
         </span>
       </div>
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 12 }}>
