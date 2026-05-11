@@ -160,7 +160,7 @@ function UnderstandingStep({
       <div className="x9-card">
         <div className="x9-card-label" style={{ marginBottom: 10 }}>Claude's Understanding</div>
         <p style={{ fontSize: 14, color: 'var(--color-x9-text)', lineHeight: 1.6, margin: 0 }}>
-          {interpretation || 'Strategy interpreted — reviewing policy rules.'}
+          {interpretation || 'Reading your strategy — policy rules will appear below.'}
         </p>
       </div>
 
@@ -192,7 +192,7 @@ function UnderstandingStep({
                     color: t.tier === 'blue_chip' ? '#22c55e' : t.tier === 'degen' ? '#ef4444' : '#eab308',
                   }}
                 >
-                  {t.tier === 'blue_chip' ? 'verified' : t.tier}
+                  {t.tier === 'blue_chip' ? 'verified' : t.tier === 'degen' ? 'high-risk' : 'mid-cap'}
                 </span>
               </div>
             ))}

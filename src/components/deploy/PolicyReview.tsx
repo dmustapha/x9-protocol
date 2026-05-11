@@ -34,7 +34,7 @@ export default function PolicyReview({
 
       {tradeableTokens && tradeableTokens.length > 0 && (
         <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-4">
-          <div className="text-sm text-zinc-400 mb-2">Tokens:</div>
+          <div className="text-sm text-zinc-400 mb-2">Tokens your agent can trade:</div>
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
             {tradeableTokens.map((t) => (
               <span
@@ -62,8 +62,7 @@ export default function PolicyReview({
       </div>
 
       <p className="text-xs text-zinc-500">
-        These rules will be enforced at the transaction layer via Swig. Your agent cannot exceed them.
-        You'll sign this policy with Phantom. That signature is the onchain commitment.
+        These rules are enforced on Solana — your agent cannot exceed them. Review carefully before deploying.
       </p>
 
       <div className="flex gap-4">
@@ -71,7 +70,7 @@ export default function PolicyReview({
           Back
         </button>
         <button onClick={onConfirm} className="flex-1 py-3 bg-[var(--accent)] text-black font-semibold rounded-lg hover:brightness-110">
-          Approve and Sign
+          Confirm and Continue
         </button>
       </div>
     </div>

@@ -81,7 +81,7 @@ export default function DashboardPage() {
       {/* Stat row */}
       <div ref={fade1.ref} style={{ ...fade1.style, display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 12 }}>
         <StatCard label="Total Agents" value={overview.totalAgents} />
-        <StatCard label="Active" value={overview.activeAgents} accent />
+        <StatCard label="Active Agents" value={overview.activeAgents} accent />
         <StatCard label="Total Trades" value={overview.totalTrades} />
         <StatCard
           label="Total P&L"
@@ -134,7 +134,7 @@ function PolicySummary({ overview }: { overview: DashboardOverview }) {
       <div className="x9-card-label">Policy Engine</div>
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 12 }}>
         <div>
-          <div style={{ fontSize: 11, color: 'var(--color-x9-text-muted)', marginBottom: 4 }}>Active Policies</div>
+          <div style={{ fontSize: 11, color: 'var(--color-x9-text-muted)', marginBottom: 4 }}>Agents Running</div>
           <div className="x9-mono" style={{ fontSize: 20, fontWeight: 700, color: 'var(--color-x9-accent)' }}>
             {overview.activeAgents}
           </div>

@@ -26,46 +26,53 @@ export default function TradeFeed({ trades }: { trades: TradeResponse[] }) {
         </div>
       </div>
       <div style={{ maxHeight: 320, overflowY: 'auto' }}>
-        {trades.map((t) => {
+        {trades.map((t, idx) => {
           const isBuy = t.action === 'buy';
           const isSell = t.action === 'sell';
           const isBlocked = t.action === 'blocked';
+          const isLast = idx === trades.length - 1;
           const amountDisplay = t.action !== 'hold' ? formatTradeAmount(t.token, t.amountLamports) : '—';
+          const actionColor = isBuy
+            ? 'var(--color-x9-accent)'
+            : isSell || isBlocked
+            ? 'var(--color-x9-danger)'
+            : 'var(--color-x9-text-muted)';
 
           return (
-            <div key={t.id} className="x9-trade-row">
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                <span
-                  className="x9-mono"
-                  style={{
-                    fontSize: 12,
-                    fontWeight: 700,
-                    color: isBuy ? 'var(--color-x9-accent)' : isSell ? 'var(--color-x9-danger)' : isBlocked ? 'var(--color-x9-danger)' : 'var(--color-x9-text-muted)',
-                    minWidth: 52,
-                  }}
-                >
-                  {t.action.toUpperCase()}
-                </span>
-                <span style={{ fontSize: 12, color: 'var(--color-x9-text-muted)' }}>
-                  {amountDisplay}
-                </span>
-              </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                {t.policyRule && (
-                  <span className="x9-badge x9-badge--red" style={{ fontSize: 9 }}>
-                    BLOCKED
+            <div
+              key={t.id}
+              style={{ borderBottom: isLast ? 'none' : '1px solid var(--color-x9-border)' }}
+            >
+              <div
+                className="x9-trade-row"
+                style={{ borderBottom: 'none' }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <span
+                    className="x9-mono"
+                    style={{ fontSize: 12, fontWeight: 700, color: actionColor, minWidth: 52 }}
+                  >
+                    {t.action.toUpperCase()}
                   </span>
-                )}
+                  <span style={{ fontSize: 12, color: 'var(--color-x9-text-muted)' }}>
+                    {amountDisplay}
+                  </span>
+                </div>
                 <span className="x9-mono" style={{ fontSize: 11, color: 'var(--color-x9-text-dim)' }}>
                   {new Date(t.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
                 </span>
               </div>
+              {t.reason && t.action !== 'hold' && (
+                <div style={{ fontSize: 11, color: 'var(--color-x9-text-dim)', paddingBottom: 8, lineHeight: 1.4 }}>
+                  {t.reason.slice(0, 140)}{t.reason.length > 140 ? '…' : ''}
+                </div>
+              )}
             </div>
           );
         })}
         {trades.length === 0 && (
           <div style={{ textAlign: 'center', padding: '24px 0', color: 'var(--color-x9-text-dim)', fontSize: 13 }}>
-            No trades recorded yet
+            No trades yet — start an agent and wait for the next 5-minute cycle.
           </div>
         )}
       </div>

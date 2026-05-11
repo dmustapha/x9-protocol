@@ -29,7 +29,7 @@ export default function AgentsDirectoryPage() {
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <div>
           <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--color-x9-text-muted)', marginBottom: 4 }}>
-            Solana Name Service · SNS Identity
+            Agent identities registered on Solana with .sol domains
           </div>
           <h1 className="x9-mono" style={{ fontSize: 22, fontWeight: 700, color: 'var(--color-x9-text)', margin: 0 }}>
             Agent Directory

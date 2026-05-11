@@ -2,9 +2,9 @@ import type { PrivacyScore as PrivacyScoreType } from '@/types';
 
 export default function PrivacyScore({ score }: { score: PrivacyScoreType }) {
   const checks = [
-    { label: 'One-time wallet', value: score.oneTimeWallet },
-    { label: 'No onchain link', value: score.noOnchainLink },
-    { label: 'Jito MEV protected', value: score.jitoProtected },
+    { label: 'One-time wallet',                value: score.oneTimeWallet },
+    { label: 'Not linked to your main wallet', value: score.noOnchainLink },
+    { label: 'Front-run protected (Jito)',      value: score.jitoProtected },
   ];
 
   return (
@@ -17,7 +17,7 @@ export default function PrivacyScore({ score }: { score: PrivacyScoreType }) {
             <span className={c.value ? 'text-zinc-200' : 'text-zinc-600'}>{c.label}</span>
           </div>
         ))}
-        <div className="text-xs text-zinc-500 mt-2">Vanish loan: {score.loanAmount}</div>
+        <div className="text-xs text-zinc-500 mt-2">Vanish routing: {score.loanAmount}</div>
       </div>
     </div>
   );
