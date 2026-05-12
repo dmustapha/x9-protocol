@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 import { useAccounts } from '@phantom/react-sdk';
 import TradeFeed from '@/components/dashboard/TradeFeed';
@@ -126,13 +126,9 @@ export default function AgentDetailPage() {
             <WalletStat label="Total Value" value={`$${wallet.totalUsdValue.toFixed(2)}`} />
             <WalletStat label="Shielded SOL" value={wallet.shieldedSol.toFixed(4)} accent />
           </div>
-          <div style={{ fontSize: 11, color: 'var(--color-x9-text-dim)', marginBottom: 4 }}>Agent public key — send SOL here to fund trading:</div>
-          <div className="x9-mono" style={{ fontSize: 12, color: 'var(--color-x9-text)', wordBreak: 'break-all' }}>{wallet.agentPublicKey}</div>
+          <AddressField label="Agent public key — send SOL here to fund trading" value={wallet.agentPublicKey} accent />
           {wallet.vanishDepositAddr && wallet.vanishDepositAddr !== 'vanish-pending' && (
-            <div style={{ marginTop: 8 }}>
-              <div style={{ fontSize: 11, color: 'var(--color-x9-text-dim)', marginBottom: 4 }}>Vanish deposit address (auto-funded by agent):</div>
-              <div className="x9-mono" style={{ fontSize: 12, color: 'var(--color-x9-text-muted)', wordBreak: 'break-all' }}>{wallet.vanishDepositAddr}</div>
-            </div>
+            <AddressField label="Vanish deposit address (auto-funded by agent)" value={wallet.vanishDepositAddr} style={{ marginTop: 12 }} />
           )}
         </div>
       )}
@@ -186,6 +182,54 @@ function WalletStat({ label, value, accent }: { label: string; value: string; ac
       <div style={{ fontSize: 11, color: 'var(--color-x9-text-muted)', marginBottom: 2 }}>{label}</div>
       <div className="x9-mono" style={{ fontSize: 16, fontWeight: 700, color: accent ? 'var(--color-x9-accent)' : 'var(--color-x9-text)' }}>
         {value}
+      </div>
+    </div>
+  );
+}
+
+function AddressField({ label, value, accent, style }: { label: string; value: string; accent?: boolean; style?: React.CSSProperties }) {
+  const [copied, setCopied] = React.useState(false);
+
+  const copy = () => {
+    navigator.clipboard.writeText(value);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 1500);
+  };
+
+  return (
+    <div style={style}>
+      <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--color-x9-text-muted)', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+        {label}
+      </div>
+      <div style={{
+        display: 'flex',
+        alignItems: 'center',
+        gap: 10,
+        background: 'var(--color-x9-surface)',
+        border: `1px solid ${accent ? 'rgba(0,255,136,0.2)' : 'var(--color-x9-border)'}`,
+        borderRadius: 8,
+        padding: '10px 14px',
+      }}>
+        <div className="x9-mono" style={{ fontSize: 13, color: accent ? 'var(--color-x9-accent)' : 'var(--color-x9-text)', wordBreak: 'break-all', flex: 1 }}>
+          {value}
+        </div>
+        <button
+          onClick={copy}
+          style={{
+            flexShrink: 0,
+            background: 'transparent',
+            border: 'none',
+            cursor: 'pointer',
+            fontSize: 11,
+            fontFamily: 'var(--font-mono)',
+            color: copied ? 'var(--color-x9-accent)' : 'var(--color-x9-text-dim)',
+            padding: '2px 6px',
+            borderRadius: 4,
+            transition: 'color 150ms ease',
+          }}
+        >
+          {copied ? 'copied' : 'copy'}
+        </button>
       </div>
     </div>
   );
