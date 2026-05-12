@@ -1,0 +1,26 @@
+{
+  "name": "x9-pitch-video",
+  "version": "1.0.0",
+  "scripts": {
+    "studio": "remotion studio src/Root.tsx",
+    "render": "remotion render src/Root.tsx Main out/pitch.mp4",
+    "render:social": "remotion render src/Root.tsx Social out/social.mp4",
+    "render:all": "npm run render && npm run render:social",
+    "preview": "remotion preview src/Root.tsx",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@remotion/cli": "^4.0.459",
+    "@remotion/google-fonts": "^4.0.459",
+    "@remotion/transitions": "^4.0.459",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "remotion": "^4.0.459"
+  },
+  "devDependencies": {
+    "@types/react": "^18.3.28",
+    "@types/react-dom": "^18.3.7",
+    "typescript": "^5.9.3"
+  },
+  "license": "ISC"
+}
