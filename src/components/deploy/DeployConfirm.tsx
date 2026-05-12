@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useAccounts } from '@phantom/react-sdk';
 import type { ActionConfig } from '@/types';
 import { useRouter } from 'next/navigation';
@@ -20,6 +20,20 @@ export default function DeployConfirm({
   const [error, setError] = useState('');
   const [agentId, setAgentId] = useState('');
   const [agentPublicKey, setAgentPublicKey] = useState('');
+  const [step, setStep] = useState(0);
+
+  const STEPS = [
+    'Generating agent keypair',
+    'Creating trading policy',
+    'Minting NFT identity on-chain',
+    'Finalising registration',
+  ];
+
+  useEffect(() => {
+    if (status !== 'deploying') { setStep(0); return; }
+    const interval = setInterval(() => setStep(s => Math.min(s + 1, STEPS.length - 1)), 8000);
+    return () => clearInterval(interval);
+  }, [status]);
   const accounts = useAccounts();
   const router = useRouter();
   const walletAddress = accounts?.find((a) => a.addressType === 'Solana')?.address;
@@ -79,6 +93,33 @@ export default function DeployConfirm({
     );
   }
 
+  if (status === 'deploying') {
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+        <p style={{ fontSize: 13, color: 'var(--color-x9-text-muted)', margin: 0, textAlign: 'center' }}>
+          Deploying <strong>{agentName}</strong> — this takes ~30 seconds
+        </p>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+          {STEPS.map((label, i) => (
+            <div key={label} style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+              <span style={{
+                width: 20, height: 20, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 700,
+                background: i < step ? 'var(--color-x9-accent)' : i === step ? 'rgba(var(--accent-rgb,0,255,120),0.2)' : 'var(--color-x9-surface-2)',
+                color: i < step ? '#000' : i === step ? 'var(--color-x9-accent)' : 'var(--color-x9-text-dim)',
+                border: i === step ? '1px solid var(--color-x9-accent)' : '1px solid transparent',
+                transition: 'all 0.4s',
+              }}>
+                {i < step ? '✓' : i + 1}
+              </span>
+              <span style={{ fontSize: 13, color: i <= step ? 'var(--color-x9-text)' : 'var(--color-x9-text-dim)' }}>{label}</span>
+              {i === step && <span style={{ fontSize: 11, color: 'var(--color-x9-accent)', marginLeft: 'auto' }}>in progress…</span>}
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 16, textAlign: 'center' }}>
       <p style={{ fontSize: 13, color: 'var(--color-x9-text-muted)', margin: 0 }}>
@@ -89,11 +130,10 @@ export default function DeployConfirm({
       )}
       <button
         onClick={deploy}
-        disabled={status === 'deploying'}
         className="x9-btn-primary"
-        style={{ width: '100%', opacity: status === 'deploying' ? 0.5 : 1 }}
+        style={{ width: '100%' }}
       >
-        {status === 'deploying' ? 'Deploying...' : 'Deploy Agent'}
+        Deploy Agent
       </button>
     </div>
   );

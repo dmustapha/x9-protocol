@@ -29,27 +29,47 @@ export default function AgentDetailPage() {
   const [trades, setTrades] = useState<TradeResponse[]>([]);
   const [pnl, setPnl] = useState<PnLData[]>([]);
   const [wallet, setWallet] = useState<WalletData | null>(null);
+  const [toggling, setToggling] = useState(false);
+  const [toggleMsg, setToggleMsg] = useState('');
+
+  const fetchTrades = () => {
+    fetch(`/api/agent/${id}/trades`).then(r => r.json()).then(setTrades);
+    fetch(`/api/agent/${id}/pnl`).then(r => r.json()).then(d => setPnl(d.pnlData));
+  };
 
   useEffect(() => {
     if (!id) return;
     fetch(`/api/agent/${id}`).then(r => r.json()).then(setAgent);
-    fetch(`/api/agent/${id}/trades`).then(r => r.json()).then(setTrades);
-    fetch(`/api/agent/${id}/pnl`).then(r => r.json()).then(d => setPnl(d.pnlData));
     fetch(`/api/agent/${id}/wallet`).then(r => r.json()).then(d => {
       if (!d.error) setWallet(d);
     });
+    fetchTrades();
+  }, [id]);
+
+  // Poll trades + PnL every 15s so the feed updates as the cron fires
+  useEffect(() => {
+    if (!id) return;
+    const interval = setInterval(fetchTrades, 15_000);
+    return () => clearInterval(interval);
   }, [id]);
 
   if (!agent || 'error' in agent || !agent.name) return <div className="text-center py-20 text-zinc-500">Loading agent...</div>;
 
   const handleToggle = async () => {
     const action = agent.status === 'active' ? 'stop' : 'start';
+    setToggling(true);
+    setToggleMsg('');
     const url = walletAddress
       ? `/api/agent/${id}/${action}?wallet=${walletAddress}`
       : `/api/agent/${id}/${action}`;
-    await fetch(url, { method: 'POST' });
-    const updated = await fetch(`/api/agent/${id}`).then(r => r.json());
-    setAgent(updated);
+    try {
+      await fetch(url, { method: 'POST' });
+      const updated = await fetch(`/api/agent/${id}`).then(r => r.json());
+      setAgent(updated);
+      setToggleMsg(action === 'start' ? 'Agent started — first trade in ~5 min' : 'Agent stopped');
+    } finally {
+      setToggling(false);
+    }
   };
 
   const metaplexAddr = agent.metaplexNftAddress;
@@ -64,16 +84,20 @@ export default function AgentDetailPage() {
           <h1 className="text-2xl font-bold">{agent.name}</h1>
           <StatusBadge status={agent.status as AgentStatus} />
         </div>
-        <button
-          onClick={handleToggle}
-          className={`px-6 py-2 rounded-lg font-semibold ${
-            agent.status === 'active'
-              ? 'bg-red-600 hover:bg-red-700'
-              : 'bg-[var(--accent)] text-black hover:brightness-110'
-          }`}
-        >
-          {agent.status === 'active' ? 'Stop Agent' : 'Start Agent'}
-        </button>
+        <div className="flex flex-col items-end gap-1">
+          <button
+            onClick={handleToggle}
+            disabled={toggling}
+            className={`px-6 py-2 rounded-lg font-semibold disabled:opacity-50 ${
+              agent.status === 'active'
+                ? 'bg-red-600 hover:bg-red-700'
+                : 'bg-[var(--accent)] text-black hover:brightness-110'
+            }`}
+          >
+            {toggling ? (agent.status === 'active' ? 'Stopping…' : 'Starting…') : (agent.status === 'active' ? 'Stop Agent' : 'Start Agent')}
+          </button>
+          {toggleMsg && <span className="text-xs text-zinc-400">{toggleMsg}</span>}
+        </div>
       </div>
 
       {/* Info Cards */}
@@ -92,7 +116,7 @@ export default function AgentDetailPage() {
         <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-4">
           <div className="flex items-center justify-between mb-3">
             <div className="text-xs font-semibold text-zinc-400 uppercase tracking-wider">Agent Wallet</div>
-            <span className={`x9-badge ${wallet.source === 'goldrush' ? 'x9-badge--green' : 'x9-badge--yellow'}`}>
+            <span className={`x9-badge ${wallet.source === 'goldrush' ? 'x9-badge--green' : 'x9-badge--muted'}`}>
               {wallet.source === 'goldrush' ? 'GoldRush · LIVE' : 'Mock'}
             </span>
           </div>

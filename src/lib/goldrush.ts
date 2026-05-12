@@ -1,6 +1,11 @@
 // GoldRush (Covalent) Unified API — live on-chain portfolio + trade verification
 const GOLDRUSH_API_KEY = process.env.GOLDRUSH_API_KEY || '';
 const BASE_URL = 'https://api.covalenthq.com/v1';
+
+// Known mint addresses used to match tokens by address, not symbol
+const SOL_MINT = 'So11111111111111111111111111111111111111112';
+const USDC_DEVNET_MINT = '4zMMC9srt5Ri5X14GAgXhaHii3GnPAEERYPJgZJDncDU';
+const USDC_MAINNET_MINT = 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v';
 const GR_TIMEOUT_MS = 10_000;
 
 // Derive chain slug from SOLANA_NETWORK env var.
@@ -59,8 +64,10 @@ export async function getWalletPortfolio(walletAddress: string): Promise<GoldRus
       }
     );
 
-    const sol = items.find((i) => i.symbol === 'SOL')?.balance ?? 0;
-    const usdc = items.find((i) => i.symbol === 'USDC')?.balance ?? 0;
+    const sol = items.find((i) => i.contractAddress === SOL_MINT)?.balance
+      ?? items.find((i) => i.symbol === 'SOL')?.balance ?? 0;
+    const usdc = items.find((i) => i.contractAddress === USDC_DEVNET_MINT || i.contractAddress === USDC_MAINNET_MINT)?.balance
+      ?? items.find((i) => i.symbol === 'USDC')?.balance ?? 0;
     const totalUsdValue = items.reduce((sum, i) => sum + i.quoteUsd, 0);
 
     return { sol, usdc, totalUsdValue, items, source: 'goldrush' };

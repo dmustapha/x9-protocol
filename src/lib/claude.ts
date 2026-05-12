@@ -1,7 +1,7 @@
 import Anthropic from '@anthropic-ai/sdk';
 import type { TradeDecision, ActionConfig, MarketContext, TradeableToken } from '@/types';
 import { SOL_MINT, USDC_MAINNET_MINT, TOKEN_PROGRAM_ID, JUPITER_PROGRAM_ID } from '@/types';
-import { getTokenByMint } from './token-registry';
+import { getTokenByMint, TOKEN_REGISTRY } from './token-registry';
 
 const API_KEY = process.env.ANTHROPIC_API_KEY?.trim() || '';
 const client = new Anthropic({ apiKey: API_KEY || 'no-key', timeout: 15000 });
@@ -170,7 +170,7 @@ export async function strategyToPolicy(naturalLanguage: string): Promise<PolicyG
       messages: [
         {
           role: 'user',
-          content: `Convert this trading strategy into Swig ActionConfig rules, identify the tokens to trade, and summarize your interpretation.\n\nStrategy: "${naturalLanguage}"\n\nAvailable ActionConfig types:\n- SolLimit: max SOL per transaction (amount in lamports)\n- SolRecurringLimit: max SOL per time window (recurringAmount in lamports, window in seconds)\n- TokenLimit: max tokens per tx (mint address, amount in smallest unit)\n- TokenRecurringLimit: max tokens per window (mint, recurringAmount, window)\n- Program: whitelist a program (programId)\n\nAlways include:\n1. A per-trade SolLimit\n2. A daily SolRecurringLimit (window: "86400")\n3. Program whitelists for Token Program (${TOKEN_PROGRAM_ID}) and Jupiter (${JUPITER_PROGRAM_ID})\n4. TokenRecurringLimit entries for any SPL tokens mentioned\n\nUse SOL mint ${SOL_MINT}, USDC mint ${USDC_MAINNET_MINT}.\nConvert dollar amounts to lamports (1 SOL = 1000000000, 1 USDC = 1000000 units).\n\nFor tradeableTokens: include SOL and any other tokens the strategy mentions. Provide accurate Solana mainnet mint addresses.`,
+          content: `Convert this trading strategy into Swig ActionConfig rules, identify the tokens to trade, and summarize your interpretation.\n\nStrategy: "${naturalLanguage}"\n\nAvailable ActionConfig types:\n- SolLimit: max SOL per transaction (amount in lamports)\n- SolRecurringLimit: max SOL per time window (recurringAmount in lamports, window in seconds)\n- TokenLimit: max tokens per tx (mint address, amount in smallest unit)\n- TokenRecurringLimit: max tokens per window (mint, recurringAmount, window)\n- Program: whitelist a program (programId)\n\nAlways include:\n1. A per-trade SolLimit\n2. A daily SolRecurringLimit (window: "86400")\n3. Program whitelists for Token Program (${TOKEN_PROGRAM_ID}) and Jupiter (${JUPITER_PROGRAM_ID})\n4. TokenRecurringLimit entries for any SPL tokens mentioned\n\nConvert dollar amounts to lamports (1 SOL = 1000000000). For SPL tokens use the decimals listed below.\n\nKnown token mint addresses — use EXACTLY these in both actions AND tradeableTokens:\n${TOKEN_REGISTRY.map(t => `${t.symbol}: ${t.mint} (decimals: ${t.decimals})`).join('\n')}\n\nFor tradeableTokens: include SOL and any other tokens the strategy mentions.`,
         },
       ],
     });
