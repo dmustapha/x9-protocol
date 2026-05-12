@@ -21,6 +21,7 @@ export const metadata: Metadata = {
     title: 'x9 protocol: AI judgment. Onchain enforcement.',
     description: 'Deploy autonomous AI trading agents on Solana with cryptographic policy enforcement via Swig.',
     type: 'website',
+    images: [{ url: '/logo.png', width: 1400, height: 600, alt: 'x9 protocol' }],
   },
   twitter: {
     card: 'summary_large_image',

@@ -39,17 +39,12 @@ export default function Header() {
             href="/"
             style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 8 }}
           >
-            <span
-              className="x9-mono"
-              style={{
-                fontSize: 15,
-                fontWeight: 700,
-                color: 'var(--color-x9-text)',
-                letterSpacing: '-0.02em',
-              }}
-            >
-              x9<span style={{ color: 'var(--color-x9-accent)' }}>.</span>protocol
-            </span>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src="/logo.png"
+              alt="x9 protocol"
+              style={{ height: 32, width: 'auto', display: 'block' }}
+            />
             <span className="x9-badge x9-badge--green" style={{ fontSize: 10, padding: '2px 6px' }}>
               BETA
             </span>

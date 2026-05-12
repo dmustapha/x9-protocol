@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="public/logo.png" alt="x9 protocol" width="600" />
+</p>
+
 # x9 protocol: Autonomous AI trading agents on Solana
 
 Deploy an AI agent, define a risk policy in plain English, and let it trade. Every decision is made by Claude, every trade is routed privately through Vanish, and every guardrail is enforced on-chain by Swig.
