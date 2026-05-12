@@ -8,17 +8,9 @@ import PortfolioCard from '@/components/dashboard/PortfolioCard';
 import type { DashboardOverview } from '@/types';
 import Link from 'next/link';
 
-function useFadeIn(threshold = 0.1) {
+function useFadeIn() {
   const ref = useRef<HTMLDivElement>(null);
-  const [visible, setVisible] = useState(false);
-  useEffect(() => {
-    const el = ref.current;
-    if (!el) return;
-    const obs = new IntersectionObserver(([e]) => { if (e.isIntersecting) setVisible(true); }, { threshold });
-    obs.observe(el);
-    return () => obs.disconnect();
-  }, [threshold]);
-  return { ref, style: { opacity: visible ? 1 : 0, transform: visible ? 'translateY(0)' : 'translateY(8px)', transition: 'opacity 400ms ease, transform 400ms ease' } };
+  return { ref, style: {} };
 }
 
 export default function DashboardPage() {
@@ -30,18 +22,17 @@ export default function DashboardPage() {
   const fade3 = useFadeIn();
 
   useEffect(() => {
-    const url = walletAddress
-      ? `/api/dashboard/overview?wallet=${walletAddress}`
-      : '/api/dashboard/overview';
+    // Global feed — always show all agents across the system
+    // Wallet-specific portfolio data is handled by PortfolioCard separately
     const load = () =>
-      fetch(url)
+      fetch('/api/dashboard/overview')
         .then((r) => r.json())
         .then(setOverview)
         .catch(() => null);
     load();
     const interval = setInterval(load, 30_000);
     return () => clearInterval(interval);
-  }, [walletAddress]);
+  }, []);
 
   // Guard: null (loading) OR malformed response (e.g. error shape from API)
   if (!overview || typeof overview.totalPnl !== 'number') {

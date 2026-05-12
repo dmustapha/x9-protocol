@@ -1,22 +1,22 @@
 # x9 Protocol — Demo Flow (New User Test Script)
 
-Use this file as your script when recording the demo video. Every step has been verified against localhost:3002.
+Use this file as your script when recording the demo video. Verified against production: https://x9-protocol.vercel.app
 
 ---
 
 ## Pre-flight checklist (before recording)
 
-- [ ] Dev server running: `npm run dev -- --port 3002` (from x9-protocol root)
-- [ ] Phantom browser extension installed and logged in (mainnet)
-- [ ] Browser at `http://localhost:3002` — landing page visible
+- [ ] Phantom browser extension installed and logged in (devnet)
+- [ ] Browser at `https://x9-protocol.vercel.app` — landing page visible
 - [ ] Window at 1280x800 or fullscreen
-- [ ] Open Prisma Studio or keep terminal ready for trade verification
+- [ ] Agent cron daemon running: `launchctl list | grep agentcron` (fires every 5 min)
+- [ ] At least one agent already Active with trades in DB for demo richness
 
 ---
 
 ## Step 1 — Landing page
 
-1. Open `http://localhost:3002`
+1. Open `https://x9-protocol.vercel.app`
 2. Scroll to show the headline, feature bullets, and the "Launch App" CTA
 3. Click **Launch App** → redirects to `/dashboard`
 
@@ -87,11 +87,11 @@ Use this file as your script when recording the demo video. Every step has been 
 
 ## Step 6 — Trigger the agent loop (manual)
 
-The cron runs automatically every 5 minutes on Vercel. For demo purposes, trigger it manually:
+The cron runs automatically every 5 minutes via launchd daemon (Vercel cron removed — Hobby plan only allows daily crons). To trigger manually:
 
 ```bash
-curl -X POST http://localhost:3002/api/cron/agent-loop \
-  -H "Authorization: Bearer $CRON_SECRET"
+curl -X POST https://x9-protocol.vercel.app/api/cron/agent-loop \
+  -H "Authorization: Bearer 762a0ace93f35758c78b6929e011dad688e557f2bf98a7aed8c80be87f2f0f22"
 ```
 
 Expected response: `{"processed": N, "results": [...]}`
@@ -144,23 +144,17 @@ After the cron runs:
 
 | Page | URL |
 |------|-----|
-| Landing | http://localhost:3002 |
-| Dashboard | http://localhost:3002/dashboard |
-| Deploy | http://localhost:3002/deploy |
-| Agents | http://localhost:3002/agents |
-| Proof | http://localhost:3002/proof |
-| Prod | https://x9-protocol.vercel.app |
+| Landing | https://x9-protocol.vercel.app |
+| Dashboard | https://x9-protocol.vercel.app/dashboard |
+| Deploy | https://x9-protocol.vercel.app/deploy |
+| Agents | https://x9-protocol.vercel.app/agents |
+| Proof | https://x9-protocol.vercel.app/proof |
 
 ---
 
 ## Cron manual trigger
 
 ```bash
-# Local
-curl -X POST http://localhost:3002/api/cron/agent-loop \
-  -H "Authorization: Bearer $(grep CRON_SECRET .env | cut -d= -f2)"
-
-# Production
 curl -X POST https://x9-protocol.vercel.app/api/cron/agent-loop \
-  -H "Authorization: Bearer $CRON_SECRET"
+  -H "Authorization: Bearer 762a0ace93f35758c78b6929e011dad688e557f2bf98a7aed8c80be87f2f0f22"
 ```
