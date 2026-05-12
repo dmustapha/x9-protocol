@@ -10,17 +10,23 @@ export default function WalletButton() {
   if (solanaAccount) {
     const addr = solanaAccount.address;
     return (
-      <button className="px-4 py-2 bg-zinc-800 rounded-lg text-sm font-mono">
+      <button style={{
+        padding: '8px 16px',
+        background: 'var(--color-x9-surface-2)',
+        border: '1px solid var(--color-x9-border)',
+        borderRadius: 8,
+        fontSize: 13,
+        fontFamily: 'var(--font-mono)',
+        color: 'var(--color-x9-text)',
+        cursor: 'default',
+      }}>
         {addr.slice(0, 4)}...{addr.slice(-4)}
       </button>
     );
   }
 
   return (
-    <button
-      onClick={() => open()}
-      className="px-4 py-2 bg-[var(--accent)] text-black rounded-lg text-sm font-semibold hover:brightness-110"
-    >
+    <button onClick={() => open()} className="x9-btn-primary" style={{ fontSize: 13 }}>
       Connect Wallet
     </button>
   );

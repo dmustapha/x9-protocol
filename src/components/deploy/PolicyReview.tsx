@@ -18,23 +18,30 @@ export default function PolicyReview({
   onConfirm: () => void;
   onBack: () => void;
 }) {
+  const blockStyle: React.CSSProperties = {
+    background: 'var(--color-x9-surface-2)',
+    border: '1px solid var(--color-x9-border)',
+    borderRadius: 12,
+    padding: 16,
+  };
+
   return (
-    <div className="space-y-6">
-      <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-4">
-        <div className="text-sm text-zinc-400 mb-2">Your strategy:</div>
-        <div className="text-sm italic">"{strategy}"</div>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+      <div style={blockStyle}>
+        <div className="x9-card-label" style={{ marginBottom: 8 }}>Your strategy</div>
+        <div style={{ fontSize: 14, fontStyle: 'italic', color: 'var(--color-x9-text)', lineHeight: 1.6 }}>"{strategy}"</div>
       </div>
 
       {interpretation && (
-        <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-4">
-          <div className="text-sm text-zinc-400 mb-2">Claude's interpretation:</div>
-          <div className="text-sm" style={{ color: 'var(--color-x9-text)', lineHeight: 1.6 }}>{interpretation}</div>
+        <div style={blockStyle}>
+          <div className="x9-card-label" style={{ marginBottom: 8 }}>Claude's interpretation</div>
+          <div style={{ fontSize: 14, color: 'var(--color-x9-text)', lineHeight: 1.6 }}>{interpretation}</div>
         </div>
       )}
 
       {tradeableTokens && tradeableTokens.length > 0 && (
-        <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-4">
-          <div className="text-sm text-zinc-400 mb-2">Tokens your agent can trade:</div>
+        <div style={blockStyle}>
+          <div className="x9-card-label" style={{ marginBottom: 10 }}>Tradeable tokens</div>
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
             {tradeableTokens.map((t) => (
               <span
@@ -47,6 +54,7 @@ export default function PolicyReview({
                   border: '1px solid var(--color-x9-border)',
                   color: 'var(--color-x9-text)',
                   fontWeight: 600,
+                  fontFamily: 'var(--font-mono)',
                 }}
               >
                 {t.symbol}
@@ -57,19 +65,19 @@ export default function PolicyReview({
       )}
 
       <div>
-        <div className="text-sm text-zinc-400 mb-2">Generated policy rules:</div>
+        <div className="x9-card-label" style={{ marginBottom: 10 }}>Generated policy rules</div>
         <PolicyPanel rules={rules} />
       </div>
 
-      <p className="text-xs text-zinc-500">
+      <p style={{ fontSize: 12, color: 'var(--color-x9-text-dim)' }}>
         These rules are enforced on Solana — your agent cannot exceed them. Review carefully before deploying.
       </p>
 
-      <div className="flex gap-4">
-        <button onClick={onBack} className="flex-1 py-3 border border-zinc-700 rounded-lg hover:bg-zinc-900">
+      <div style={{ display: 'flex', gap: 12 }}>
+        <button onClick={onBack} className="x9-btn-ghost" style={{ flex: 1, justifyContent: 'center' }}>
           Back
         </button>
-        <button onClick={onConfirm} className="flex-1 py-3 bg-[var(--accent)] text-black font-semibold rounded-lg hover:brightness-110">
+        <button onClick={onConfirm} className="x9-btn-primary" style={{ flex: 1, justifyContent: 'center' }}>
           Confirm and Continue
         </button>
       </div>

@@ -4,11 +4,11 @@ import type { AgentResponse } from '@/types';
 
 export default function AgentCard({ agent }: { agent: AgentResponse }) {
   return (
-    <Link href={`/agent/${agent.id}`} className="block bg-zinc-900 border border-zinc-800 rounded-xl p-4 hover:border-zinc-700 transition">
-      <div className="flex justify-between items-start">
+    <Link href={`/agent/${agent.id}`} className="x9-card" style={{ display: 'block', textDecoration: 'none' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
         <div>
-          <div className="font-semibold">{agent.name}</div>
-          <div className="text-xs text-zinc-500 mt-1">{agent.strategyText.slice(0, 60)}...</div>
+          <div style={{ fontWeight: 600, fontSize: 15, color: 'var(--color-x9-text)' }}>{agent.name}</div>
+          <div style={{ fontSize: 12, color: 'var(--color-x9-text-dim)', marginTop: 4 }}>{agent.strategyText.slice(0, 60)}...</div>
         </div>
         <StatusBadge status={agent.status as 'active' | 'paused' | 'blocked' | 'stopped'} />
       </div>

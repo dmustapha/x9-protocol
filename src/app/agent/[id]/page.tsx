@@ -53,7 +53,7 @@ export default function AgentDetailPage() {
     return () => clearInterval(interval);
   }, [id]);
 
-  if (!agent || 'error' in agent || !agent.name) return <div className="text-center py-20 text-zinc-500">Loading agent...</div>;
+  if (!agent || 'error' in agent || !agent.name) return <div style={{ textAlign: 'center', padding: '80px 0', color: 'var(--color-x9-text-dim)' }}>Loading agent...</div>;
 
   const handleToggle = async () => {
     const action = agent.status === 'active' ? 'stop' : 'start';
@@ -96,7 +96,7 @@ export default function AgentDetailPage() {
           >
             {toggling ? (agent.status === 'active' ? 'Stopping…' : 'Starting…') : (agent.status === 'active' ? 'Stop Agent' : 'Start Agent')}
           </button>
-          {toggleMsg && <span className="text-xs text-zinc-400">{toggleMsg}</span>}
+          {toggleMsg && <span style={{ fontSize: 12, color: 'var(--color-x9-text-muted)' }}>{toggleMsg}</span>}
         </div>
       </div>
 
@@ -113,9 +113,9 @@ export default function AgentDetailPage() {
 
       {/* Agent Wallet Card */}
       {wallet && (
-        <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-4">
-          <div className="flex items-center justify-between mb-3">
-            <div className="text-xs font-semibold text-zinc-400 uppercase tracking-wider">Agent Wallet</div>
+        <div className="x9-card">
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
+            <div className="x9-card-label" style={{ marginBottom: 0 }}>Agent Wallet</div>
             <span className={`x9-badge ${wallet.source === 'goldrush' ? 'x9-badge--green' : 'x9-badge--muted'}`}>
               {wallet.source === 'goldrush' ? 'GoldRush · LIVE' : 'Mock'}
             </span>
@@ -126,12 +126,12 @@ export default function AgentDetailPage() {
             <WalletStat label="Total Value" value={`$${wallet.totalUsdValue.toFixed(2)}`} />
             <WalletStat label="Shielded SOL" value={wallet.shieldedSol.toFixed(4)} accent />
           </div>
-          <div className="text-xs text-zinc-500 mb-1">Agent public key — send SOL here to fund trading:</div>
-          <div className="font-mono text-xs text-zinc-300 break-all">{wallet.agentPublicKey}</div>
+          <div style={{ fontSize: 11, color: 'var(--color-x9-text-dim)', marginBottom: 4 }}>Agent public key — send SOL here to fund trading:</div>
+          <div className="x9-mono" style={{ fontSize: 12, color: 'var(--color-x9-text)', wordBreak: 'break-all' }}>{wallet.agentPublicKey}</div>
           {wallet.vanishDepositAddr && wallet.vanishDepositAddr !== 'vanish-pending' && (
-            <div className="mt-2">
-              <div className="text-xs text-zinc-500 mb-1">Vanish deposit address (auto-funded by agent):</div>
-              <div className="font-mono text-xs text-zinc-500 break-all">{wallet.vanishDepositAddr}</div>
+            <div style={{ marginTop: 8 }}>
+              <div style={{ fontSize: 11, color: 'var(--color-x9-text-dim)', marginBottom: 4 }}>Vanish deposit address (auto-funded by agent):</div>
+              <div className="x9-mono" style={{ fontSize: 12, color: 'var(--color-x9-text-muted)', wordBreak: 'break-all' }}>{wallet.vanishDepositAddr}</div>
             </div>
           )}
         </div>
@@ -167,12 +167,14 @@ function deriveSNSDomain(name: string): string {
 function InfoCard({ label, value, link }: { label: string; value: string; link?: string }) {
   const display = value.length > 20 ? value.slice(0, 8) + '...' + value.slice(-6) : value;
   return (
-    <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-4">
-      <div className="text-xs text-zinc-500 mb-1">{label}</div>
+    <div className="x9-card">
+      <div style={{ fontSize: 11, color: 'var(--color-x9-text-dim)', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.06em', fontWeight: 600 }}>{label}</div>
       {link ? (
-        <a href={link} target="_blank" rel="noopener noreferrer" className="text-[var(--accent)] hover:underline text-sm">{display}</a>
+        <a href={link} target="_blank" rel="noopener noreferrer" style={{ color: 'var(--color-x9-accent)', fontSize: 13, fontFamily: 'var(--font-mono)', textDecoration: 'none' }}
+           onMouseEnter={(e) => (e.currentTarget.style.textDecoration = 'underline')}
+           onMouseLeave={(e) => (e.currentTarget.style.textDecoration = 'none')}>{display}</a>
       ) : (
-        <div className="text-sm font-mono">{display}</div>
+        <div className="x9-mono" style={{ fontSize: 13 }}>{display}</div>
       )}
     </div>
   );

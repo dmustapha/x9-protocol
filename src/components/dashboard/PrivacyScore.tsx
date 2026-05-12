@@ -8,16 +8,16 @@ export default function PrivacyScore({ score }: { score: PrivacyScoreType }) {
   ];
 
   return (
-    <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-4">
-      <h3 className="font-semibold mb-4">Privacy Score</h3>
-      <div className="space-y-2">
+    <div className="x9-card">
+      <div className="x9-card-label">Privacy Score</div>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
         {checks.map((c) => (
-          <div key={c.label} className="flex items-center gap-2 text-sm">
-            <span className={c.value ? 'text-green-400' : 'text-zinc-600'}>{c.value ? '✓' : '✗'}</span>
-            <span className={c.value ? 'text-zinc-200' : 'text-zinc-600'}>{c.label}</span>
+          <div key={c.label} style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13 }}>
+            <span style={{ color: c.value ? 'var(--color-x9-accent)' : 'var(--color-x9-text-dim)' }}>{c.value ? '✓' : '✗'}</span>
+            <span style={{ color: c.value ? 'var(--color-x9-text)' : 'var(--color-x9-text-dim)' }}>{c.label}</span>
           </div>
         ))}
-        <div className="text-xs text-zinc-500 mt-2">Vanish routing: {score.loanAmount}</div>
+        <div style={{ fontSize: 11, color: 'var(--color-x9-text-dim)', marginTop: 4 }}>Vanish routing: {score.loanAmount}</div>
       </div>
     </div>
   );
