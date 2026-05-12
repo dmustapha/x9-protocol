@@ -24,7 +24,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'x9 protocol: AI judgment. Onchain enforcement.',
+    title: 'x9 protocol — AI judgment. Onchain enforcement.',
     description: 'Autonomous trading agents. Cryptographic policy. Solana.',
   },
 };
