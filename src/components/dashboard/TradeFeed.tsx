@@ -17,7 +17,7 @@ export default function TradeFeed({ trades }: { trades: TradeResponse[] }) {
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
         <div className="x9-card-label" style={{ margin: 0 }}>Trade Feed</div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <span style={{ fontSize: 11, color: 'var(--color-x9-text-dim)' }}>1 decision per 5-min cycle</span>
+          <span style={{ fontSize: 12, color: 'var(--color-x9-text-muted)' }}>1 decision per 5-min cycle</span>
           <span className="x9-badge x9-badge--green">
             <span className="x9-status-dot x9-animate-pulse-dot" style={{ width: 5, height: 5 }} />
             LIVE
@@ -53,16 +53,16 @@ export default function TradeFeed({ trades }: { trades: TradeResponse[] }) {
                   >
                     {t.action.toUpperCase()}
                   </span>
-                  <span style={{ fontSize: 12, color: 'var(--color-x9-text-muted)' }}>
+                  <span style={{ fontSize: 13, color: 'var(--color-x9-text-muted)' }}>
                     {amountDisplay}
                   </span>
                 </div>
-                <span className="x9-mono" style={{ fontSize: 11, color: 'var(--color-x9-text-dim)' }}>
+                <span className="x9-mono" style={{ fontSize: 12, color: 'var(--color-x9-text-muted)' }}>
                   {new Date(t.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
                 </span>
               </div>
               {t.reason && t.action !== 'hold' && (
-                <div style={{ fontSize: 11, color: 'var(--color-x9-text-dim)', paddingBottom: 8, lineHeight: 1.4 }}>
+                <div style={{ fontSize: 12, color: 'var(--color-x9-text-muted)', paddingBottom: 8, lineHeight: 1.4 }}>
                   {t.reason.slice(0, 140)}{t.reason.length > 140 ? '…' : ''}
                 </div>
               )}

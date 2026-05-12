@@ -165,7 +165,7 @@ export default function ProofPage() {
                 <div className="x9-mono" style={{ fontSize: 22, fontWeight: 700, color: 'var(--color-x9-accent)' }}>
                   {s.value}
                 </div>
-                <div style={{ fontSize: 11, color: 'var(--color-x9-text-muted)', marginTop: 4 }}>{s.label}</div>
+                <div style={{ fontSize: 12, color: 'var(--color-x9-text-muted)', marginTop: 4 }}>{s.label}</div>
               </div>
             ))}
           </div>
@@ -174,7 +174,7 @@ export default function ProofPage() {
 
       {/* Integration rows */}
       <div ref={fade2.ref} style={fade2.style}>
-        <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--color-x9-text-muted)', marginBottom: 12 }}>
+        <div style={{ fontSize: 12, fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--color-x9-text-muted)', marginBottom: 12 }}>
           Sponsor Integrations
         </div>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
@@ -195,7 +195,7 @@ export default function ProofPage() {
                 <div>
                   <div style={{ fontWeight: 600, fontSize: 14, marginBottom: 4 }}>{row.sponsor}</div>
                   <div style={{ fontSize: 13, color: 'var(--color-x9-text-muted)', marginBottom: 6 }}>{row.claim}</div>
-                  <div className="x9-mono" style={{ fontSize: 11, color: 'var(--color-x9-text-dim)' }}>{row.evidence}</div>
+                  <div className="x9-mono" style={{ fontSize: 12, color: 'var(--color-x9-text-muted)' }}>{row.evidence}</div>
                 </div>
                 <span className={`x9-badge ${cfg.badge}`} style={{ whiteSpace: 'nowrap', marginTop: 2 }}>
                   {cfg.label}
@@ -207,7 +207,7 @@ export default function ProofPage() {
       </div>
 
       {/* Legend */}
-      <div style={{ fontSize: 11, color: 'var(--color-x9-text-dim)', borderTop: '1px solid var(--color-x9-border)', paddingTop: 12 }}>
+      <div style={{ fontSize: 12, color: 'var(--color-x9-text-muted)', borderTop: '1px solid var(--color-x9-border)', paddingTop: 12 }}>
         LIVE = real API wired and called in production path · SEEDED = integrated in code, demo data populated via seed script · Run scripts/generate-proof.ts for full on-chain evidence after providing API keys
       </div>
     </div>

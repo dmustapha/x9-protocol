@@ -56,7 +56,7 @@ export default function DashboardPage() {
         <div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
             <span className="x9-status-dot x9-animate-pulse-dot" />
-            <span style={{ fontSize: 11, fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--color-x9-text-muted)' }}>
+            <span style={{ fontSize: 12, fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--color-x9-text-muted)' }}>
               Live Agent Feed
             </span>
           </div>
@@ -102,7 +102,7 @@ export default function DashboardPage() {
       </div>
 
       {/* Footer note */}
-      <div ref={fade3.ref} style={{ ...fade3.style, fontSize: 11, color: 'var(--color-x9-text-dim)', borderTop: '1px solid var(--color-x9-border)', paddingTop: 12 }}>
+      <div ref={fade3.ref} style={{ ...fade3.style, fontSize: 12, color: 'var(--color-x9-text-muted)', borderTop: '1px solid var(--color-x9-border)', paddingTop: 12 }}>
         Data refreshes every 30s · Policy enforcement via Swig · Trades routed through Jupiter
       </div>
     </div>
@@ -125,19 +125,19 @@ function PolicySummary({ overview }: { overview: DashboardOverview }) {
       <div className="x9-card-label">Policy Engine</div>
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 12 }}>
         <div>
-          <div style={{ fontSize: 11, color: 'var(--color-x9-text-muted)', marginBottom: 4 }}>Agents Running</div>
+          <div style={{ fontSize: 12, color: 'var(--color-x9-text-muted)', marginBottom: 4 }}>Agents Running</div>
           <div className="x9-mono" style={{ fontSize: 20, fontWeight: 700, color: 'var(--color-x9-accent)' }}>
             {overview.activeAgents}
           </div>
         </div>
         <div>
-          <div style={{ fontSize: 11, color: 'var(--color-x9-text-muted)', marginBottom: 4 }}>Blocks Today</div>
+          <div style={{ fontSize: 12, color: 'var(--color-x9-text-muted)', marginBottom: 4 }}>Blocks Today</div>
           <div className="x9-mono" style={{ fontSize: 20, fontWeight: 700, color: 'var(--color-x9-danger)' }}>
             {overview.blockEvents?.length ?? 0}
           </div>
         </div>
         <div>
-          <div style={{ fontSize: 11, color: 'var(--color-x9-text-muted)', marginBottom: 4 }}>Enforcement</div>
+          <div style={{ fontSize: 12, color: 'var(--color-x9-text-muted)', marginBottom: 4 }}>Enforcement</div>
           <span className="x9-badge x9-badge--green">Swig · LIVE</span>
         </div>
       </div>

@@ -34,7 +34,7 @@ export default function DunePanel({ agentId }: Props) {
     return (
       <div className="x9-card">
         <div className="x9-card-label">Analytics</div>
-        <div style={{ color: 'var(--color-x9-text-dim)', fontSize: 12 }}>Loading analytics...</div>
+        <div style={{ color: 'var(--color-x9-text-muted)', fontSize: 13 }}>Loading analytics...</div>
       </div>
     );
   }
@@ -70,13 +70,13 @@ export default function DunePanel({ agentId }: Props) {
       {/* PnL curve mini-table */}
       {analytics.pnlCurve.rows.length > 0 && (
         <div>
-          <div style={{ fontSize: 11, color: 'var(--color-x9-text-muted)', marginBottom: 6 }}>Cumulative P&L</div>
+          <div style={{ fontSize: 12, color: 'var(--color-x9-text-muted)', marginBottom: 6 }}>Cumulative P&L</div>
           <div style={{ maxHeight: 120, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 2 }}>
             {analytics.pnlCurve.rows.slice(-5).map((r, i) => {
               const row = r as { timestamp?: string; pnl_sol?: string };
               const pnlVal = parseFloat(row.pnl_sol ?? '0');
               return (
-                <div key={i} style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11, fontFamily: 'var(--font-mono)', padding: '2px 0', borderBottom: '1px solid var(--color-x9-border)' }}>
+                <div key={i} style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, fontFamily: 'var(--font-mono)', padding: '2px 0', borderBottom: '1px solid var(--color-x9-border)' }}>
                   <span style={{ color: 'var(--color-x9-text-dim)' }}>
                     {row.timestamp ? new Date(row.timestamp).toLocaleTimeString() : '—'}
                   </span>
@@ -96,7 +96,7 @@ export default function DunePanel({ agentId }: Props) {
 function StatBox({ label, value }: { label: string; value: string }) {
   return (
     <div style={{ background: 'var(--color-x9-surface-raised)', borderRadius: 8, padding: '10px 12px' }}>
-      <div style={{ fontSize: 10, color: 'var(--color-x9-text-muted)', marginBottom: 4, textTransform: 'uppercase', letterSpacing: '0.06em' }}>{label}</div>
+      <div style={{ fontSize: 11, color: 'var(--color-x9-text-muted)', marginBottom: 4, textTransform: 'uppercase', letterSpacing: '0.06em' }}>{label}</div>
       <div className="x9-mono" style={{ fontSize: 16, fontWeight: 700, color: 'var(--color-x9-text)' }}>{value}</div>
     </div>
   );

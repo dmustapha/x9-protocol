@@ -40,13 +40,13 @@ export default function BlockEventLog({ events }: { events: BlockEventResponse[]
                   BLOCKED · {amtSol} SOL
                 </span>
               </div>
-              <div style={{ fontSize: 11, color: 'var(--color-x9-text-muted)', marginBottom: 3 }}>
+              <div style={{ fontSize: 12, color: 'var(--color-x9-text-muted)', marginBottom: 3 }}>
                 {humanizeRule(e.ruleTriggered)}
               </div>
-              <div style={{ fontSize: 11, color: 'var(--color-x9-text-dim)' }}>
+              <div style={{ fontSize: 12, color: 'var(--color-x9-text-muted)' }}>
                 {e.claudeReasoning}
               </div>
-              <div className="x9-mono" style={{ fontSize: 10, color: 'var(--color-x9-text-dim)', marginTop: 4 }}>
+              <div className="x9-mono" style={{ fontSize: 11, color: 'var(--color-x9-text-muted)', marginTop: 4 }}>
                 {new Date(e.createdAt).toLocaleString()}
               </div>
             </div>

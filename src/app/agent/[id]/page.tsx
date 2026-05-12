@@ -134,7 +134,7 @@ export default function AgentDetailPage() {
       )}
 
       {/* One-trade-per-cycle note */}
-      <div style={{ fontSize: 12, color: 'var(--color-x9-text-dim)', display: 'flex', alignItems: 'center', gap: 6 }}>
+      <div style={{ fontSize: 12, color: 'var(--color-x9-text-muted)', display: 'flex', alignItems: 'center', gap: 6 }}>
         <span style={{ width: 6, height: 6, borderRadius: '50%', background: 'var(--color-x9-accent)', display: 'inline-block' }} />
         1 decision per 5-minute cycle
       </div>

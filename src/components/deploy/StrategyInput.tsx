@@ -55,7 +55,7 @@ export default function StrategyInput({ onSubmit }: { onSubmit: (name: string, s
             lineHeight: 1.6,
           }}
         />
-        <p style={{ fontSize: 12, color: 'var(--color-x9-text-dim)', marginTop: 8 }}>
+        <p style={{ fontSize: 13, color: 'var(--color-x9-text-muted)', marginTop: 8 }}>
           Claude converts this into enforceable Swig policy rules. You review before deploying.
         </p>
       </div>

@@ -28,7 +28,7 @@ export default function PortfolioCard({ walletAddress }: Props) {
     return (
       <div className="x9-card">
         <div className="x9-card-label">Connected Wallet</div>
-        <div style={{ color: 'var(--color-x9-text-dim)', fontSize: 12 }}>Loading...</div>
+        <div style={{ color: 'var(--color-x9-text-muted)', fontSize: 13 }}>Loading...</div>
       </div>
     );
   }
@@ -44,19 +44,19 @@ export default function PortfolioCard({ walletAddress }: Props) {
       </div>
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 12 }}>
         <div>
-          <div style={{ fontSize: 11, color: 'var(--color-x9-text-muted)', marginBottom: 4 }}>SOL Balance</div>
+          <div style={{ fontSize: 12, color: 'var(--color-x9-text-muted)', marginBottom: 4 }}>SOL Balance</div>
           <div className="x9-mono" style={{ fontSize: 20, fontWeight: 700, color: 'var(--color-x9-accent)' }}>
             {portfolio.sol.toFixed(4)}
           </div>
         </div>
         <div>
-          <div style={{ fontSize: 11, color: 'var(--color-x9-text-muted)', marginBottom: 4 }}>USDC Balance</div>
+          <div style={{ fontSize: 12, color: 'var(--color-x9-text-muted)', marginBottom: 4 }}>USDC Balance</div>
           <div className="x9-mono" style={{ fontSize: 20, fontWeight: 700, color: 'var(--color-x9-text)' }}>
             {portfolio.usdc.toFixed(2)}
           </div>
         </div>
         <div>
-          <div style={{ fontSize: 11, color: 'var(--color-x9-text-muted)', marginBottom: 4 }}>Total Value</div>
+          <div style={{ fontSize: 12, color: 'var(--color-x9-text-muted)', marginBottom: 4 }}>Total Value</div>
           <div className="x9-mono" style={{ fontSize: 20, fontWeight: 700, color: 'var(--color-x9-text)' }}>
             ${portfolio.totalUsdValue.toFixed(2)}
           </div>

@@ -79,8 +79,8 @@ export default function DeployConfirm({
         </p>
         {agentPublicKey && (
           <div style={{ background: 'var(--color-x9-surface-2)', border: '1px solid var(--color-x9-border)', borderRadius: 8, padding: '10px 14px', textAlign: 'left' }}>
-            <div style={{ fontSize: 11, color: 'var(--color-x9-text-muted)', marginBottom: 4 }}>Send SOL to agent wallet:</div>
-            <div className="x9-mono" style={{ fontSize: 12, wordBreak: 'break-all', color: 'var(--color-x9-accent)' }}>{agentPublicKey}</div>
+            <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--color-x9-text-muted)', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Send SOL to agent wallet</div>
+            <div className="x9-mono" style={{ fontSize: 13, wordBreak: 'break-all', color: 'var(--color-x9-accent)' }}>{agentPublicKey}</div>
           </div>
         )}
         <button
@@ -112,7 +112,7 @@ export default function DeployConfirm({
                 {i < step ? '✓' : i + 1}
               </span>
               <span style={{ fontSize: 13, color: i <= step ? 'var(--color-x9-text)' : 'var(--color-x9-text-dim)' }}>{label}</span>
-              {i === step && <span style={{ fontSize: 11, color: 'var(--color-x9-accent)', marginLeft: 'auto' }}>in progress…</span>}
+              {i === step && <span style={{ fontSize: 12, color: 'var(--color-x9-accent)', marginLeft: 'auto' }}>in progress…</span>}
             </div>
           ))}
         </div>

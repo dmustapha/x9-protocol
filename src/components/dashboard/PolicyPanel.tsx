@@ -24,7 +24,7 @@ function ruleColor(rule: ActionConfig): string {
 export default function PolicyPanel({ rules }: { rules: ActionConfig[] }) {
   return (
     <div style={{ background: 'var(--color-x9-surface)', border: '1px solid var(--color-x9-border)', borderRadius: 12, padding: 16 }}>
-      <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--color-x9-text-muted)', marginBottom: 12 }}>
+      <div style={{ fontSize: 12, fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--color-x9-text-muted)', marginBottom: 12 }}>
         Active Policy Rules
       </div>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
