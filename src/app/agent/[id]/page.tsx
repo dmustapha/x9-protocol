@@ -31,6 +31,10 @@ export default function AgentDetailPage() {
   const [wallet, setWallet] = useState<WalletData | null>(null);
   const [toggling, setToggling] = useState(false);
   const [toggleMsg, setToggleMsg] = useState('');
+  const [withdrawing, setWithdrawing] = useState(false);
+  const [withdrawMsg, setWithdrawMsg] = useState('');
+  const [keyExport, setKeyExport] = useState<{ byteArray: number[]; hex: string } | null>(null);
+  const [showKey, setShowKey] = useState(false);
 
   const fetchTrades = () => {
     fetch(`/api/agent/${id}/trades`).then(r => r.json()).then(setTrades);
@@ -70,6 +74,31 @@ export default function AgentDetailPage() {
     } finally {
       setToggling(false);
     }
+  };
+
+  const handleWithdraw = async () => {
+    setWithdrawing(true);
+    setWithdrawMsg('');
+    try {
+      const res = await fetch(`/api/agent/${id}/withdraw`, { method: 'POST' });
+      const data = await res.json();
+      if (data.error) {
+        setWithdrawMsg(`Error: ${data.error}`);
+      } else {
+        setWithdrawMsg(`Withdrawn ${data.amount.toFixed(4)} SOL → wallet`);
+        // Refresh wallet balance
+        fetch(`/api/agent/${id}/wallet`).then(r => r.json()).then(d => { if (!d.error) setWallet(d); });
+      }
+    } finally {
+      setWithdrawing(false);
+    }
+  };
+
+  const handleExportKey = async () => {
+    const res = await fetch(`/api/agent/${id}/export-key`);
+    const data = await res.json();
+    if (!data.error) setKeyExport(data);
+    setShowKey(true);
   };
 
   const metaplexAddr = agent.metaplexNftAddress;
@@ -133,6 +162,74 @@ export default function AgentDetailPage() {
         </div>
       )}
 
+      {/* Withdraw + Key Export */}
+      {wallet && (
+        <div className="x9-card" style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+          <div className="x9-card-label" style={{ marginBottom: 0 }}>Fund Recovery</div>
+
+          {/* Withdraw button */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
+            <button
+              onClick={handleWithdraw}
+              disabled={withdrawing || wallet.sol <= 0}
+              style={{
+                padding: '8px 20px',
+                borderRadius: 8,
+                fontWeight: 600,
+                fontSize: 13,
+                cursor: withdrawing || wallet.sol <= 0 ? 'not-allowed' : 'pointer',
+                opacity: withdrawing || wallet.sol <= 0 ? 0.5 : 1,
+                background: 'var(--color-x9-accent)',
+                color: '#000',
+                border: 'none',
+              }}
+            >
+              {withdrawing ? 'Withdrawing…' : 'Withdraw All SOL → My Wallet'}
+            </button>
+            {withdrawMsg && (
+              <span style={{ fontSize: 12, color: withdrawMsg.startsWith('Error') ? 'var(--color-x9-danger)' : 'var(--color-x9-accent)' }}>
+                {withdrawMsg}
+              </span>
+            )}
+          </div>
+          <p style={{ fontSize: 12, color: 'var(--color-x9-text-muted)', margin: 0 }}>
+            Transfers all SOL from the agent wallet back to the address that deployed it.
+          </p>
+
+          {/* Key export — collapsed by default */}
+          <details style={{ marginTop: 4 }}>
+            <summary style={{ fontSize: 12, color: 'var(--color-x9-text-muted)', cursor: 'pointer', userSelect: 'none', fontWeight: 600 }}>
+              Advanced — Export Agent Private Key
+            </summary>
+            <div style={{ marginTop: 10, display: 'flex', flexDirection: 'column', gap: 8 }}>
+              <p style={{ fontSize: 12, color: 'var(--color-x9-text-muted)', margin: 0 }}>
+                Import into Phantom → Settings → Import Private Key → Byte Array. Paste the JSON array below.
+              </p>
+              {!showKey ? (
+                <button
+                  onClick={handleExportKey}
+                  style={{ alignSelf: 'flex-start', padding: '6px 14px', borderRadius: 6, fontSize: 12, fontWeight: 600, background: 'transparent', border: '1px solid var(--color-x9-border)', color: 'var(--color-x9-text-muted)', cursor: 'pointer' }}
+                >
+                  Reveal Key
+                </button>
+              ) : keyExport ? (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                  <div style={{ fontSize: 11, color: 'var(--color-x9-text-muted)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Byte Array (Phantom)</div>
+                  <KeyBox value={JSON.stringify(keyExport.byteArray)} />
+                  <div style={{ fontSize: 11, color: 'var(--color-x9-text-muted)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em', marginTop: 4 }}>Hex (CLI)</div>
+                  <KeyBox value={keyExport.hex} />
+                  <p style={{ fontSize: 11, color: 'var(--color-x9-danger)', margin: 0 }}>
+                    ⚠ Anyone with this key controls the wallet. Do not share it.
+                  </p>
+                </div>
+              ) : (
+                <span style={{ fontSize: 12, color: 'var(--color-x9-danger)' }}>Failed to load key</span>
+              )}
+            </div>
+          </details>
+        </div>
+      )}
+
       {/* One-trade-per-cycle note */}
       <div style={{ fontSize: 12, color: 'var(--color-x9-text-muted)', display: 'flex', alignItems: 'center', gap: 6 }}>
         <span style={{ width: 6, height: 6, borderRadius: '50%', background: 'var(--color-x9-accent)', display: 'inline-block' }} />
@@ -183,6 +280,19 @@ function WalletStat({ label, value, accent }: { label: string; value: string; ac
       <div className="x9-mono" style={{ fontSize: 16, fontWeight: 700, color: accent ? 'var(--color-x9-accent)' : 'var(--color-x9-text)' }}>
         {value}
       </div>
+    </div>
+  );
+}
+
+function KeyBox({ value }: { value: string }) {
+  const [copied, setCopied] = React.useState(false);
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', gap: 8, background: 'var(--color-x9-surface)', border: '1px solid var(--color-x9-border)', borderRadius: 6, padding: '8px 12px' }}>
+      <div className="x9-mono" style={{ fontSize: 11, color: 'var(--color-x9-text)', wordBreak: 'break-all', flex: 1, maxHeight: 80, overflowY: 'auto' }}>{value}</div>
+      <button onClick={() => { navigator.clipboard.writeText(value); setCopied(true); setTimeout(() => setCopied(false), 1500); }}
+        style={{ flexShrink: 0, background: 'transparent', border: 'none', cursor: 'pointer', fontSize: 11, fontFamily: 'var(--font-mono)', color: copied ? 'var(--color-x9-accent)' : 'var(--color-x9-text-dim)', padding: '2px 6px' }}>
+        {copied ? 'copied' : 'copy'}
+      </button>
     </div>
   );
 }
