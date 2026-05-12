@@ -11,6 +11,7 @@ export async function GET(req: Request) {
         id: true,
         name: true,
         status: true,
+        strategyText: true,
         snsDomain: true,
         agentPublicKey: true,
         metaplexNftAddress: true,

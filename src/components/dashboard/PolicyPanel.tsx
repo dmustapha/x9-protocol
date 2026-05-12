@@ -7,17 +7,41 @@ const KNOWN_PROGRAMS: Record<string, string> = {
   [JUPITER_PROGRAM_ID]: 'Jupiter (swap aggregator)',
 };
 
+function ruleIcon(rule: ActionConfig): string {
+  if (rule.type.startsWith('Sol')) return '◎';
+  if (rule.type.startsWith('Token')) return '⬡';
+  if (rule.type === 'Program') return '⬣';
+  return '·';
+}
+
+function ruleColor(rule: ActionConfig): string {
+  if (rule.type.startsWith('Sol')) return 'var(--color-x9-accent)';
+  if (rule.type.startsWith('Token')) return 'var(--color-x9-cyan)';
+  if (rule.type === 'Program') return 'var(--color-x9-blue)';
+  return 'var(--color-x9-text-muted)';
+}
+
 export default function PolicyPanel({ rules }: { rules: ActionConfig[] }) {
   return (
-    <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-4">
-      <h3 className="font-semibold mb-4">Active Policy Rules</h3>
-      <div className="space-y-2">
-        {rules.map((rule, i) => (
-          <div key={i} className="text-sm p-2 bg-zinc-800/50 rounded">
-            {formatRule(rule)}
-          </div>
-        ))}
-        {rules.length === 0 && <div className="text-zinc-600 text-sm">No policy configured</div>}
+    <div style={{ background: 'var(--color-x9-surface)', border: '1px solid var(--color-x9-border)', borderRadius: 12, padding: 16 }}>
+      <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--color-x9-text-muted)', marginBottom: 12 }}>
+        Active Policy Rules
+      </div>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+        {rules.map((rule, i) => {
+          const color = ruleColor(rule);
+          return (
+            <div key={i} style={{
+              display: 'flex', alignItems: 'center', gap: 10,
+              background: 'var(--color-x9-surface-2)', borderRadius: 8, padding: '8px 12px',
+              border: '1px solid var(--color-x9-border)',
+            }}>
+              <span style={{ fontSize: 14, color, flexShrink: 0, lineHeight: 1 }}>{ruleIcon(rule)}</span>
+              <span style={{ fontSize: 13, color: 'var(--color-x9-text)' }}>{formatRule(rule)}</span>
+            </div>
+          );
+        })}
+        {rules.length === 0 && <div style={{ fontSize: 13, color: 'var(--color-x9-text-dim)' }}>No policy configured</div>}
       </div>
     </div>
   );

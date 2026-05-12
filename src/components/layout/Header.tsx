@@ -69,6 +69,9 @@ export default function Header() {
                     fontWeight: isActive ? 500 : 400,
                     textDecoration: 'none',
                     transition: 'color 150ms ease',
+                    position: 'relative',
+                    paddingBottom: 2,
+                    borderBottom: isActive ? '2px solid var(--color-x9-accent)' : '2px solid transparent',
                   }}
                 >
                   {label}
