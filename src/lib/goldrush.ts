@@ -38,7 +38,7 @@ async function grFetch(path: string) {
         Authorization: `Bearer ${GOLDRUSH_API_KEY}`,
         'Content-Type': 'application/json',
       },
-      next: { revalidate: 30 },
+      cache: 'no-store',
       signal: controller.signal,
     });
     if (!res.ok) throw new Error(`GoldRush ${res.status}: ${await res.text()}`);
@@ -48,7 +48,58 @@ async function grFetch(path: string) {
   }
 }
 
+const RPC_URL = process.env.SOLANA_RPC_URL || 'https://api.mainnet-beta.solana.com';
+
+async function rpcCall(method: string, params: unknown[]): Promise<unknown> {
+  const res = await fetch(RPC_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ jsonrpc: '2.0', id: 1, method, params }),
+    cache: 'no-store',
+  });
+  const data = await res.json();
+  return data?.result;
+}
+
+async function getSolBalanceRpc(walletAddress: string): Promise<number> {
+  const result = await rpcCall('getBalance', [walletAddress, { commitment: 'confirmed' }]) as { value?: number } | null;
+  return (result?.value ?? 0) / 1e9;
+}
+
+async function getUsdcBalanceRpc(walletAddress: string): Promise<number> {
+  // Try mainnet USDC first, then devnet
+  for (const mint of [USDC_MAINNET_MINT, USDC_DEVNET_MINT]) {
+    try {
+      const result = await rpcCall('getTokenAccountsByOwner', [
+        walletAddress,
+        { mint },
+        { encoding: 'jsonParsed', commitment: 'confirmed' },
+      ]) as { value?: { account: { data: { parsed: { info: { tokenAmount: { uiAmount: number } } } } } }[] } | null;
+      const accounts = result?.value ?? [];
+      if (accounts.length > 0) {
+        return accounts[0].account.data.parsed.info.tokenAmount.uiAmount;
+      }
+    } catch { /* try next mint */ }
+  }
+  return 0;
+}
+
+async function getSolPriceUsd(): Promise<number> {
+  try {
+    const res = await fetch('https://price.jup.ag/v6/price?ids=So11111111111111111111111111111111111111112', { cache: 'no-store' });
+    const data = await res.json();
+    return data?.data?.['So11111111111111111111111111111111111111112']?.price ?? 0;
+  } catch { return 0; }
+}
+
 export async function getWalletPortfolio(walletAddress: string): Promise<GoldRushPortfolio> {
+  // Always fetch RPC balances in parallel — they're the source of truth.
+  const [solRpc, usdcRpc, solPrice] = await Promise.all([
+    getSolBalanceRpc(walletAddress).catch(() => 0),
+    getUsdcBalanceRpc(walletAddress).catch(() => 0),
+    getSolPriceUsd().catch(() => 0),
+  ]);
+
   try {
     const data = await grFetch(`/${SOLANA_CHAIN}/address/${walletAddress}/balances_v2/`);
     const items: TokenBalance[] = (data.data?.items ?? []).map(
@@ -64,17 +115,26 @@ export async function getWalletPortfolio(walletAddress: string): Promise<GoldRus
       }
     );
 
-    const sol = items.find((i) => i.contractAddress === SOL_MINT)?.balance
+    // GoldRush for token list; RPC values override when GoldRush returns 0 for a funded wallet.
+    const solGr = items.find((i) => i.contractAddress === SOL_MINT)?.balance
       ?? items.find((i) => i.symbol === 'SOL')?.balance ?? 0;
-    const usdc = items.find((i) => i.contractAddress === USDC_DEVNET_MINT || i.contractAddress === USDC_MAINNET_MINT)?.balance
+    const usdcGr = items.find((i) => i.contractAddress === USDC_DEVNET_MINT || i.contractAddress === USDC_MAINNET_MINT)?.balance
       ?? items.find((i) => i.symbol === 'USDC')?.balance ?? 0;
-    const totalUsdValue = items.reduce((sum, i) => sum + i.quoteUsd, 0);
+
+    const sol = solGr > 0 ? solGr : solRpc;
+    const usdc = usdcGr > 0 ? usdcGr : usdcRpc;
+    const totalUsdValue = sol * solPrice + usdc;
 
     return { sol, usdc, totalUsdValue, items, source: 'goldrush' };
   } catch (err) {
-    // Return zero balances so Claude doesn't trade on fabricated portfolio data.
-    console.warn('[goldrush] getWalletPortfolio failed, using zero balances:', String(err));
-    return { sol: 0, usdc: 0, totalUsdValue: 0, items: [], source: 'mock' };
+    console.warn('[goldrush] getWalletPortfolio API failed, using RPC values:', String(err));
+    return {
+      sol: solRpc,
+      usdc: usdcRpc,
+      totalUsdValue: solRpc * solPrice + usdcRpc,
+      items: [],
+      source: 'mock',
+    };
   }
 }
 
