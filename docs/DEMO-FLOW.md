@@ -27,14 +27,14 @@ Use this file as your script when recording the demo video. Verified against pro
 ## Step 2 — Dashboard
 
 1. You land on `/dashboard`
-2. If Phantom is not connected: the page shows a "Connect Phantom" prompt in the portfolio card area
-3. Click the **Phantom connect button** (top-right of the app)
-4. Approve the connection in the Phantom popup
-5. Dashboard now shows your GoldRush live portfolio card (SOL balance, USDC, shielded SOL)
-   - If the wallet has mainnet history: badge shows **GoldRush · LIVE** in green
-   - If the wallet is fresh/unfunded: badge shows **Mock** in yellow — this is expected for new wallets
+2. **Global feed loads immediately** — 4 stat cards show across all agents in the system: Total Agents, Active Agents, Total Trades, Total P&L
+3. Below: Trade Feed (recent decisions from all agents), Block Event Log, Portfolio Card
+4. Connect Phantom (top-right button) → approve in popup
+5. Portfolio Card now shows your wallet's live GoldRush data (SOL, USDC, shielded SOL)
+   - Funded wallet → **GoldRush · LIVE** badge (green)
+   - Fresh wallet → **Mock** badge (yellow) — expected
 
-**What you'll see:** Live portfolio with wallet balances and agent count.
+**What you'll see:** Populated dashboard with real trade history, P&L, and live stats — even before connecting your wallet.
 
 ---
 
@@ -56,7 +56,11 @@ Use this file as your script when recording the demo video. Verified against pro
    - Program whitelists (Token Program + Jupiter)
 7. Click **Next**
 8. **Step 4 — Deploy:** Enter agent name (e.g. `Alpha`), review everything, click **Deploy Agent**
-   - Button shows "Deploying..." while 4 things happen in parallel: Swig wallet created, Metaplex NFT minted, SNS .sol domain registered, DB record created
+   - Animated 4-step progress UI appears (~30s):
+     1. Generating agent keypair
+     2. Creating trading policy
+     3. Minting NFT identity on-chain
+     4. Finalising registration
 9. On success: redirected to `/agents` directory
 
 **Key point:** The policy rules reviewed in Step 3 are the EXACT rules stored — no double-generation.
@@ -65,23 +69,25 @@ Use this file as your script when recording the demo video. Verified against pro
 
 ## Step 4 — Agents directory
 
-1. You see your new agent card with name, `.sol` domain, and **Stopped** status badge
-2. Click the agent card → goes to `/agent/[id]`
+1. You see your new agent card with name, `.sol` domain, and **Ready** status badge (amber — deployed but not yet started)
+2. Card shows a preview of your strategy text and wallet address
+3. Click the agent card → goes to `/agent/[id]`
 
 ---
 
 ## Step 5 — Agent detail page
 
-1. Top section: agent name, status badge (Stopped), **Start Agent** button
-2. Info cards: Swig wallet address, Metaplex NFT link, SNS domain (e.g. `alpha.sol`)
+1. Top section: agent name, status badge (**Ready**), **Start Agent** button
+2. Info cards: Swig wallet address, Metaplex NFT address, SNS domain (e.g. `alpha.sol`)
 3. Agent Wallet card: SOL, USDC, Total Value, Shielded SOL (GoldRush live or Mock)
 4. Click **Start Agent**
    - Phantom popup appears asking for wallet signature (ownership proof)
    - Approve it
+   - Button shows "Starting…" → then "Agent started — first trade in ~5 min"
    - Status badge flips to **Active** (green)
-5. Scroll down: PnL chart (empty for new agent), Trade Feed (empty), Policy Panel showing rules, Dune Analytics panel
+5. Scroll down: PnL chart, Trade Feed (auto-refreshes every 15s — no manual refresh needed), Policy Panel, Dune Analytics
 
-**What you'll see:** The start/stop button correctly passes your wallet address — no 403 errors.
+**What you'll see:** Status flips to Active instantly; trade feed populates automatically within 5 minutes.
 
 ---
 
@@ -112,11 +118,11 @@ Each active agent will:
 
 ## Step 7 — View a trade
 
-After the cron runs:
-1. Refresh `/agent/[id]`
-2. Trade Feed shows each decision: action, token, dollar amount, reason, privacy score
-3. PnL chart updates with cumulative value over time
-4. Policy Panel shows any block events
+After the cron runs (no refresh needed — feed auto-updates every 15s):
+1. Trade Feed shows each decision: action, token, dollar amount, reason, privacy score
+2. PnL chart updates with cumulative value over time
+3. Policy Panel shows active rules and any block events
+4. **Note:** New agents need SOL in their wallet for real swaps — send devnet SOL to the agent's public key shown on the detail page, then wait for next cron cycle
 
 ---
 
@@ -132,11 +138,13 @@ After the cron runs:
 
 | Behavior | Reason |
 |----------|--------|
-| Agent wallet shows "Mock" badge | GoldRush returns mock for unfunded wallets — send SOL to agent key to see live data |
-| PnL chart empty on new agent | No trades yet — trigger cron or wait 5 minutes |
-| Dune panel shows "Query failed" | Dune free tier has cold-start delays — data appears after ~60s or on cache hit |
-| RSI shows "insufficient data" | Needs 15+ price samples (15 cron cycles = 75 minutes) to compute RSI |
-| SNS domain shows derived name | SNS registration is async — `.sol` domain confirmed after a few blocks |
+| Agent wallet shows "Mock" badge | GoldRush returns mock for unfunded wallets — send devnet SOL to agent key to see live data |
+| PnL chart empty on new agent | No trades yet — trigger cron manually or wait up to 5 min |
+| Agent holds every cycle | Insufficient SOL in agent wallet — fund it with devnet SOL |
+| Dune panel shows "Query failed" | Dune free tier cold-start — data appears after ~60s or cache hit |
+| RSI shows "insufficient data" | Needs 15+ price samples (15 cron cycles = ~75 min) to compute RSI |
+| SNS domain shows "pending" | SNS registration is async — `.sol` domain confirmed after a few blocks |
+| Status shows "Ready" not "Paused" | By design — "Ready" means deployed but not yet started |
 
 ---
 
