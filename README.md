@@ -108,10 +108,10 @@ Open `http://localhost:3002`.
 | `NEXT_PUBLIC_PHANTOM_APP_ID` | Yes | Phantom embedded wallet app ID |
 | `CRON_SECRET` | Yes | Auth token for the agent-loop cron endpoint |
 | `SOLANA_RPC_URL` | Yes | Solana RPC (mainnet-beta recommended) |
-| `GOLDRUSH_API_KEY` | No | GoldRush (Covalent) — live portfolio; mock fallback if unset |
-| `VANISH_API_KEY` | No | Vanish privacy routing — mock fallback if unset |
-| `DUNE_API_KEY` | No | Dune Analytics — DB-derived fallback if unset |
-| `IKA_API_KEY` | No | Ika MPC signing — Keypair fallback if unset |
+| `GOLDRUSH_API_KEY` | No | GoldRush (Covalent) — live on-chain portfolio and trade verification |
+| `VANISH_API_KEY` | No | Vanish privacy routing — ephemeral wallets and Jito MEV protection |
+| `DUNE_API_KEY` | No | Dune Analytics — real-time PnL curves and volume analytics |
+| `IKA_API_KEY` | No | Ika MPC threshold signing for agent key custody |
 
 ---
 
