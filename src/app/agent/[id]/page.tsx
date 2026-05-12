@@ -171,14 +171,14 @@ export default function AgentDetailPage() {
           <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
             <button
               onClick={handleWithdraw}
-              disabled={withdrawing || wallet.sol <= 0}
+              disabled={withdrawing || (wallet?.sol ?? 0) <= 0}
               style={{
                 padding: '8px 20px',
                 borderRadius: 8,
                 fontWeight: 600,
                 fontSize: 13,
-                cursor: withdrawing || wallet.sol <= 0 ? 'not-allowed' : 'pointer',
-                opacity: withdrawing || wallet.sol <= 0 ? 0.5 : 1,
+                cursor: withdrawing || (wallet?.sol ?? 0) <= 0 ? 'not-allowed' : 'pointer',
+                opacity: withdrawing || (wallet?.sol ?? 0) <= 0 ? 0.5 : 1,
                 background: 'var(--color-x9-accent)',
                 color: '#000',
                 border: 'none',
