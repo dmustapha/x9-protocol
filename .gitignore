@@ -81,3 +81,4 @@ scripts/setup-dune-queries.ts
 scripts/swap-usdt-to-sol.ts
 tsconfig.scripts.json
 .env.production.example
+docs/DEMO-FLOW.md
