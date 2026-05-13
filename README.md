@@ -1,5 +1,7 @@
 <p align="center">
-  <a href="https://www.youtube.com/watch?v=HmHvLBLWfzg"><strong>Watch Demo Video</strong></a>
+  <a href="https://www.youtube.com/watch?v=HmHvLBLWfzg">
+    <img src="https://img.shields.io/badge/▶%20WATCH%20DEMO%20VIDEO-FF0000?style=for-the-badge&logo=youtube&logoColor=white" alt="Watch Demo Video" />
+  </a>
 </p>
 
 <p align="center">
